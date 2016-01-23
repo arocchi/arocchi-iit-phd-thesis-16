@@ -64,7 +64,9 @@
 	colorize=full,%
 	colortheme=bluemagenta,%
 	bibsys=bibtex,%
-	bibfile={bib-refs bib/ark16},%
+	bibfile={bib-refs
+			 bib/gyp14 bib/ssoch16
+	         bib/osot17_1 bib/osot17_1_pp bib/osot17_2 bib/osot17_2_pp bib/ark16},%
 	bibstyle=alphabetic,%
 ]{cleanthesis}
 \usepackage{amsmath}
@@ -128,7 +130,7 @@
 \section{Whole-Body Locomotion and Manipulation}
 
 \chapter{Simulation of Compliant Robots}
-
+\input{simulator}
 \section{Simulating Compliant Humanoid Robots}
 \let\thefootnote\relax\footnotetext{based on \cite{Hoffman2014-qw}}
 \subsection{Simulators as Abstractions to the Physical Hardware}
@@ -140,6 +142,7 @@
 \let\thefootnote\relax\footnotetext{based on \cite{Rocchi2016-jq}}
 
 \chapter{Whole-Body Control}
+\input{opensot}
 \let\thefootnote\relax\footnotetext{based on \cite{Rocchi2015-nm, Settimi2014-uo, Fang2015-cr, Ajoudani2014-fs, Lee2014-he}}
 \section{OpenSoT: a library for Whole-Body Control of Humanoid Robots}
 \subsection{A Framework for Whole-Body Control}
@@ -147,6 +150,7 @@
 \subsubsection{The Darpa Robotics Challenge}
 
 \chapter{Humanoids Software Architecture}
+\input{architecture}
 \subsubsection{COMAN}
 \subsubsection{WALK-MAN}
 
