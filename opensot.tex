@@ -47,7 +47,7 @@ This solution allows also \emph{task prioritization}:
     \label{eq:another_task}
 \dq_\text{0} = \J_\text{0}^{\dagger}\dx_\text{0}
 \end{equation}
-in particular, the solution given by (\ref{eq:differential_inverse_kineamtics}) with (\ref{eq:another_task}), project the joint velocities of the second task into the null space of the first task removing all the components that would interfere with it \cite{DBLPReferenceRobo2008}. Many other solutions of (\ref{eq:differential_kineamtics}) are available in literature \cite{siciliano1991general}. Singularities in the Jacobian, as well as joint velocity limits, are often handled with the \emph{Singularity Robust Inverse} (SRI) \cite{Nakamura1990ARR533662}, \cite{MaciejewskiK89}.
+in particular, the solution given by (\ref{eq:differential_inverse_kineamtics}) with (\ref{eq:another_task}), project the joint velocities of the second task into the null space of the first task removing all the components that would interfere with it \cite{DBLPReferenceRobo2008}. Many other solutions of (\ref{eq:differential_kineamtics}) are available in literature \cite{siciliano1991general}. Singularities in the Jacobian, as well as joint velocity limits, are often handled with the \emph{Singularity Robust Inverse} (SRI) \cite{nakamura1990-tp}, \cite{MaciejewskiK89}.
 The problem of this type of schemes is that they do not handle constraints in the form of inequalities. 
 
 To overcome this problem, techniques from optimization field have been adopted.
@@ -493,7 +493,7 @@ then the constraint can be rewritten at the velocity level as:
 \leq  \Delta T \left(\mathbf{D}(\mathbf{q}, \mathbf{\dot{q}}) + \boldsymbol{\tau}_\text{max}\right)+ \mathbf{M}(\mathbf{q})\mathbf{\dot{q}}_\text{prev}
 \label{robot_dynamics_constraint}
 \end{equation}
-A similar idea was presented also in \cite{Park:98} but contact forces were not taken in consideration.
+A similar idea was presented also in \cite{park1998-ib} but contact forces were not taken in consideration.
 Practically speaking, as we did for other constraints, it is useful to have a scaling factor $\sigma \ \in \ \left(0, \ 1 \right]$ in front of the constraint:
 \begin{equation}
 \sigma \left(\Delta T \left(\mathbf{D}(\mathbf{q}, \mathbf{\dot{q}}) + \boldsymbol{\tau}_\text{min}\right ) + \mathbf{M}(\mathbf{q})\mathbf{\dot{q}}_\text{prev} \right)\leq
@@ -634,7 +634,7 @@ s.t. \ \mathbf{c}_\text{l,i} \leq \mathbf{A}_i\dot{\mathbf{q}}_i \leq \mathbf{b}
 \end{equation}
 where $\mathbf{J}_i$ and $\mathbf{v}_{d,i}$ are respectively the Jacobian and the desired velocity reference for i-th task, $\lambda$ is a weight for the damping correction, $\mathbf{A}_i$, $\mathbf{c}_\text{l,i}$ and $\mathbf{c}_\text{u,i}$ are constraints present only in the i-th task, $\mathbf{A}$, $\mathbf{b}_\text{l}$ and $\mathbf{b}_\text{u}$ are global constrains as well as $\mathbf{u}_\text{l}$ and $\mathbf{u}_\text{u}$ are bounds that are present in all the tasks. 
 The final set of constraints represent the optimality conditions that comes from the high priority level tasks in the stack. In our IK solver all the optimality conditions are set automatically given the IK Problem while the other constraints are set by the user.
-As shown in \cite{Nakamura1990ARR533662} the second term in the cost function guarantees the robustness near kinematics singularities (see Appendix \ref{app:singularity-robustness}, the $\lambda$ gain can be chosen according to different criteria). Bounds and constraints are mandatory in order to be robust to joint limits and joint velocity/acceleration/torque limits.
+As shown in \cite{nakamura1990-tp} the second term in the cost function guarantees the robustness near kinematics singularities (see Appendix \ref{app:singularity-robustness}, the $\lambda$ gain can be chosen according to different criteria). Bounds and constraints are mandatory in order to be robust to joint limits and joint velocity/acceleration/torque limits.
 Conceptually, the IK solver is divided in two main parts: the \emph{front-end} and the \emph{back-end} (this terminology is often used in SLAM optimization).
 The \emph{front-end} takes an IK Problem and prepare all the QP Problems that needs to be solved considering priorities, local and global constraints and bounds. The \emph{back-end} consists of the underneath QP Solver that solves the single QP Problem. Tasks, constraints and bounds are defined as \emph{pointers} and updated outside the solver at every step.
 
@@ -1553,7 +1553,7 @@ Recent approaches make use of Quadratic Programming (QP) Optimization that makes
 \label{eq:sot_full}
 \end{equation}
 where $\A$ matrices and $\b$ vectors are constraints.
-In \eqref{eq:sot_full}, priorities are taken into account considering the previous solutions $\dq_i, \; i < n$ and constraints of the type {$\mathbf{A}_i \dq = \mathbf{A}_i \dq_i, \; \forall i < n$},  so that the optimality of all higher priority tasks is not changed by the current solution \cite{mansard2009versatile}. The second term in the cost function of \eqref{eq:sot_full} permits to handle kinematics singularities in order to avoid high joint velocities \cite{Nakamura1990ARR533662}. A similar structure can be used to solve the IK problem at the acceleration level.
+In \eqref{eq:sot_full}, priorities are taken into account considering the previous solutions $\dq_i, \; i < n$ and constraints of the type {$\mathbf{A}_i \dq = \mathbf{A}_i \dq_i, \; \forall i < n$},  so that the optimality of all higher priority tasks is not changed by the current solution \cite{mansard2009-eq}. The second term in the cost function of \eqref{eq:sot_full} permits to handle kinematics singularities in order to avoid high joint velocities \cite{nakamura1990-tp}. A similar structure can be used to solve the IK problem at the acceleration level.
 
 Many tasks and constraints have been presented in literature for the framework depicted in \eqref{eq:sot_full}, examples are: joint limits, joint velocity limits, self collision avoidance \cite{kanehiro2008local}, Cartesian velocity limits, minimum joint acceleration \cite{DBLP:conf/icra/FlaccoLK12} and \emph{Capture Point} \cite{ ramos-humanoid-14} for humanoid robots. In particular, joint limits and joint velocity limits are fundamental when working with real robotic hardware.  
 
@@ -1609,7 +1609,7 @@ then the constraint can be rewritten at the velocity level as:
 \end{multline}
 where $\mathbf{\dot{q}}^*$ are the new joint velocities references.
 
-A similar idea was presented also in \cite{Park:98} but contact forces were not taken in consideration, while they are fundamental when working with floating base robots.
+A similar idea was presented also in \cite{park1998-ib} but contact forces were not taken in consideration, while they are fundamental when working with floating base robots.
 Practically speaking, it is useful to have a scaling factor $\sigma \ \in \ \left(0, \ 1 \right]$ in front of the constraint, which allows to smoothen the solution as the robot approaches its dynamic limits:
 \begin{multline}
 \sigma \left(\Delta T \left(\mathbf{D}(\mathbf{q}, \mathbf{\dot{q}}) + \boldsymbol{\tau}_\text{min}\right ) + \mathbf{M}(\mathbf{q})\mathbf{\dot{q}} \right)\leq
