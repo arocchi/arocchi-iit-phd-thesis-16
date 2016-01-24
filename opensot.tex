@@ -15,7 +15,7 @@
 \def\w{\mathbf{w}}
 
 \section{Abstract}
-\label{sec:abstract}
+\label{sec:abstract-opensot}
 Inverse Kinematics (IK) is a fundamental component of high level robot controllers. Last trends make use of Quadratic Programming (QP) in order to minimize a cost function taking into account a set of constraints for the IK. These constraints can also be used in order to impose priorities between tasks. In this work we introduce the theoretical foundations of IK based on QP optimization, we describe the formulation of a comprehensive set of tasks and constraints expressed at the velocity level and we present our IK solver based on the state-of-art QP solver library \emph{qpOASES}. All these components have been developed as part of the robotic framework \textbf{OpenSoT}, developed at the Italian Institute of Technology. This framework consists in a C++ library that facilitates the control of hyper-redundant fixed/floating base robots. The software API and tools as well as experiments and results are presented in the second part of this work.
 
 \section{Introduction}
@@ -839,7 +839,7 @@ that substituted in (\ref{step1}) gives the solution:
 that corresponds to the weighted pseudo inverse solution.
 
 \section{Abstract-2}
-\label{sec:abstract2}
+\label{sec:abstract-opensot2}
 In this paper we introduce the software API and tools of the \textbf{OpenSoT} framework. Moreover we show a large set of examples of high-level tasks as well as tests to evaluate the \textbf{OpenSoT}'s tasks and constraints. 
 This set of tests and examples demonstrate the performances of the library and the easiness of writing complex sets of tasks and constraints.
 This paper is a complement to the first part where the theoretical foundation of the frameworks were presented. 
