@@ -1521,9 +1521,6 @@ This work is supported by the WALK-MAN FP7-ICT-2013-10 European Commission proje
 \section{Abstract-3}
   Inverse Kinematics is a fundamental tool of Operational Space control. Recent approaches make use of Quadratic Programming Optimization to obtain desired joint velocities or accelerations from Cartesian references. QP based IK also permits to specify constraints to affect the solution. Constraints are fundamental and necessary when working with real robotic hardware since they prevent possible damages: joint limits, self collision avoidance, joint velocity limits are examples of such constraints. In this work we present a constraint to take into account the robot dynamics when performing IK. Despite it can be naturally expressed at acceleration level, we formulate it also at the velocity level to be used in any IK QP based scheme. This constraint allows to generate dynamically feasible motions of the robot taking into account maximum and minimum torques available at the joints. We apply this constraint to our humanoid robot WALK-MAN while performing a Cartesian task which requires high torques in some particular joints. The constraint is developed using the OpenSoT library.
 
-%%% Please provide a reasonable number of keywords:
-\keywords{Inverse Kinematics, Quadratic Programming Optimization, Dynamics.}
-
 \section{Introduction-3}
 \label{sec:introduction3}
 Inverse Kinematics (IK) is a fundamental step in robots control since it maps high level Cartesian commands into joint space commands. This step is in general highly non-linear, for this reason linearization through the robot Jacobian has been proposed and it is commonly used (named \emph{Differential} IK):
