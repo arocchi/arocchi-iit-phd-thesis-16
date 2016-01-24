@@ -775,7 +775,7 @@ solving for $\dot{\mathbf{q}}$ leads to:
 \label{SRI}
 \mathbf{\dot{q}}=(\mathbf{J}'\mathbf{J}+\lambda\mathbf{I})^{-1}\mathbf{J}'\mathbf{v}
 \end{equation}
-notice that $(\mathbf{J}'\mathbf{J}+\lambda\mathbf{I})^{-1}\mathbf{J}' = \mathbf{J}'(\mathbf{J}\mathbf{J}'+\lambda\mathbf{I})^{-1}$ and it is called \emph{Singularity Robust Inverse} (SRI) of matrix $\mathbf{J}$ \cite{Nakamura1990-tp}.
+notice that $(\mathbf{J}'\mathbf{J}+\lambda\mathbf{I})^{-1}\mathbf{J}' = \mathbf{J}'(\mathbf{J}\mathbf{J}'+\lambda\mathbf{I})^{-1}$ and it is called \emph{Singularity Robust Inverse} (SRI) of matrix $\mathbf{J}$ \cite{nakamura1990-tp}.
 It is worth to notice that applying the SRI to the Singular Value Decomposition of a matrix leads to the Damped Singular Value Decomposition of that matrix, in fact, given a matrix $\mathbf{A}$ its SVD is:
 \begin{equation}
 \mathbf{A} = U\Sigma V'
@@ -788,7 +788,7 @@ where the general non-zero element of $\Sigma^{\dagger}$ is $1/\sigma_i$ that be
 \begin{equation}
 \Sigma^{\dagger} = (\Sigma'\Sigma+\lambda\mathbf{I})^{-1}\Sigma'
 \end{equation}
-where in this case the non-zero elements have the form $\frac{\sigma_i}{\sigma_i^2+\lambda}$ that is well known \cite{Maciejewski1989-jp} SR form for the pseudo inverse.
+where in this case the non-zero elements have the form $\frac{\sigma_i}{\sigma_i^2+\lambda}$ that is well known \cite{maciejewski1989-jp} SR form for the pseudo inverse.
 
 \section{Weighted Pseudo-Inverse}
 \label{app:weighted-pseudo-inverse}
@@ -958,7 +958,7 @@ The latter allows to automatically check for a defined motion before executing i
 
 \subsubsection{Capsule Generation}
 \label{subsub:CapsuleGeneration}
-In order to compute the minimum distance between links, an automated way to generate capsule approximation of meshes for URDF model is needed. To this extent, we developed tools using the \emph{Roboptim} \cite{Moulard2013-nk,Moulard_undated-tm} numerical optimization for robotics library. Through the plugin \emph{roboptim-capsule} the library finds the minimum volume capsule that contains the given polyhedra. The optimization problem resolving in optimal capsules is reported here for convenience \cite{El_Khoury2013-rp}
+In order to compute the minimum distance between links, an automated way to generate capsule approximation of meshes for URDF model is needed. To this extent, we developed tools using the \emph{Roboptim} \cite{Moulard2013-nk,Moulard_undated-tm} numerical optimization for robotics library. Through the plugin \emph{roboptim-capsule} the library finds the minimum volume capsule that contains the given polyhedra. The optimization problem resolving in optimal capsules is reported here for convenience \cite{el_khoury2013-rp}
 
 \begin{eqnarray*}
 \min_{e1,e2,r} & \left\Vert e_2 - e_1 \right\Vert_2 \pi r^2+\frac{4}{3}\pi r^3\\
