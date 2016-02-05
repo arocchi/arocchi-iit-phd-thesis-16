@@ -14,7 +14,7 @@
 	listof=totoc,				% include listof entries in toc
 	titlepage=on,				% own page for each title page
 	captions=tableabove,		% display table captions above the float env
-	draft=false,				% value for draft version
+	draft=true,				% value for draft version
 ]{scrreprt}%
 
 % **************************************************
@@ -25,9 +25,9 @@
 % **************************************************
 % Information and Commands for Reuse
 % **************************************************
-\newcommand{\thesisTitle}{Thesis Title}
+\newcommand{\thesisTitle}{Compliant Humanoid Robots:\\Simulation and Control}
 \newcommand{\thesisName}{Alessio Rocchi}
-\newcommand{\thesisSubject}{Thesis Subject}
+\newcommand{\thesisSubject}{Robust Control Framework  and Simulation Techniques for Compliant Humanoid Robots with application to the Darpa Robotics Challenge}
 \newcommand{\thesisDate}{11 November, 2015}
 \newcommand{\thesisVersion}{Draft}
 
@@ -74,6 +74,7 @@
 \usepackage{array, makecell, multicol}
 \usepackage[toc,page]{appendix}
 \usepackage{rotating}
+\usepackage[draft]{todonotes}
 
 \hypersetup{					% setup the hyperref-package options
 	pdftitle={\thesisTitle},	% 	- title (PDF meta)
@@ -138,6 +139,7 @@
 \input{opensot}
 
 \chapter{Humanoids Software Architecture}
+\label{architecture}
 \input{architecture}
 
 \chapter{Conclusions}

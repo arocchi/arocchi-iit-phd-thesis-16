@@ -14,10 +14,17 @@
 \def\de{\mathbf{\dot{e}}}
 \def\w{\mathbf{w}}
 
-Inverse Kinematics (IK) is a fundamental component of high level robot controllers. Last trends make use of Quadratic Programming (QP) in order to minimize a cost function taking into account a set of constraints for the IK. These constraints can also be used in order to impose priorities between tasks. In this work we introduce the theoretical foundations of IK based on QP optimization, we describe the formulation of a comprehensive set of tasks and constraints expressed at the velocity level and we present our IK solver based on the state-of-art QP solver library \emph{qpOASES}. All these components have been developed as part of the robotic framework \textbf{OpenSoT}, developed at the Italian Institute of Technology \cite{Rocchi2015-is, Settimi2014-uo, Fang2015-cr, Ajoudani2014-fs, Lee2014-dg}. This framework consists in a C++ library that facilitates the control of hyper-redundant fixed/floating base robots. The software API and tools as well as experiments and results are presented later on in this work.
+\todo{ADD material from the original ICRA work}
+The field of whole-body planning and control tries to find the solution to the problem of executing one or more task at the same time, while exploiting the capabilities of the entire body of redundant, floating-based robots in multi-contact scenarios with the environment.
 
-Inverse Kinematics is a fundamental tool of Operational Space control. Recent approaches make use of Quadratic Programming Optimization to obtain desired joint velocities or accelerations from Cartesian references. QP based IK also permits to specify constraints to affect the solution. Constraints are fundamental and necessary when working with real robotic hardware since they prevent possible damages: joint limits, self collision avoidance, joint velocity limits are examples of such constraints. In this work we present a constraint to take into account the robot dynamics when performing IK. Despite it can be naturally expressed at acceleration level, we formulate it also at the velocity level to be used in any IK QP based scheme. This constraint allows to generate dynamically feasible motions of the robot taking into account maximum and minimum torques available at the joints. We apply this constraint to our humanoid robot WALK-MAN while performing a Cartesian task which requires high torques in some particular joints. The constraint is developed using the OpenSoT library.
+%The problem entails modeling and controlling systems with hybrid dynamics, encompasses the force distribution problem in multi-contact scenarios, planning for the making and breaking of robot-environment contacts during loco-manipulation tasks, and passes through the optimization of the robot resources to maximally exploit the kinematic structure and the dynamics of the robot and the task.
+%Related problems to the whole-body control are of mechatronic(how to design an agile and robust robot), and computational origin: the joint design (compliant, rigid), as well as the search for designs to obtain reliable low-level torque control, and in the case of compliant joints, performant low-level position controls, and under the computation point of view, fast numerical methods, software and hardware architectures able to accomplish high frequency, reliable control.
+%Other than being a research problem, it still is a technological problem to either implement, simulate and control highly redundant robots, such as humanoid robots. Not only the prices for building such robots are still very high, being the assembly of robots ironically man-made (with a very interesting and ambitious vision from Boston Dynamics to 3d-print the robots of the future), but the technological problems range from the problem of building a reliable, high-throughput and high-bandwidth communication network between the sensors, actuators and controllers, to obtaining reliable torque sensing at the joint level, to building agile robots which are also resilient, and of course to the computational limitations one encounters when writing control algorithms for highly redundant robots.
 
+Several and different approaches are being investigated by the research community, such as optimization, inverse dynamics, inverse kinematics with dynamic filters and admittance control. \todo{how long is this so far? I could also go in more detail on the state of the art of several kind of control? Or briefly on the problem in general, and more in detail on the kinematic problem}.
+
+Inverse Kinematics (IK) is a fundamental component for a vast number of application in robotics. In particular, kinematic control is still a popular choice for high level robot controllers. While the kinematic control problem has been tackled in literature using several different approaches, latest trends both in research and application make use of Quadratic Programming (QP) to obtain a locally optimal solution to the hierarchical constrained IK problem. The interest is in part justified by the need, for practical reasons, to have robust solutions which are hard constrained by the physical limits of the robots, such as joint, torque and self-collision avoidance limits. In this section the theoretical foundations of kinematic control based on QP optimization will be presented, and the formulation of a comprehensive set of tasks and constraints will be provided, according to the capabilities of the developed framework. The kinematic control, and thus the formulation for the tasks and the contraints in the framework will be expressed at the velocity level, meaning the solution of each step of the IK solver will return a displacement $\delta q$ that can be actuated on the physical robot or integrated for kinematic simulation. Some aspects of the IK solver will be described, and the choice of the state-of-art QP solver library \emph{qpOASES} will be motivated. 
+The work presented has been been developed as part of the robotic framework \textbf{OpenSoT}, developed at the Italian Institute of Technology \cite{Rocchi2015-is, Fang2015-cr, Ajoudani2014-fs, Lee2014-dg}. The framework has been developed for application to our compliant humanoid robots, in particular to the COMAN in a compliant inverse kinematics scheme, and WALKMAN as part of the high-level control architecture  used in the Darpa Robotics Challenge. The framework consists of a C++ library tailored for the control of hyper-redundant fixed/floating base robot. Experiments and results in the Darpa Robotics Challenge are presented later on in this section, while the software API and tools as will be presented in chapter \ref{architecture}.
 
 %%%%%%%%%%%%%%%%%% INTRO
 \section{OpenSoT: a library for Whole-Body Control of Humanoid Robots}
@@ -27,32 +34,33 @@ Inverse Kinematics is a fundamental tool of Operational Space control. Recent ap
   \end{center}
   \caption{OpenSoT Logo}
 \end{wrapfigure}
-Mapping task-space commands into joint commands is one of the fundamental problem in robotics. Depending on the type of kinematics and dynamics of the robot, different approaches can be used to achieve this task. In this work, a new whole body motion library, called \textbf{OpenSoT}, developed at the Italian Institute of Technology (IIT), is presented. 
-Typical techniques to map task-space commands to joint commands can be classified as inverse kinematics or inverse dynamics schemes and can be implemented using a variety of low level controllers. \textbf{OpenSoT} belongs to the first group: our goal was therefore to develop a high performance and flexible library that can generate reliably complex and efficient whole body motions.
+From a very broad perspective, the inverse kinematics problem is that of mapping task-space objectives into joint-space commands.
+Typical techniques to map task-space commands to joint commands can be roughly classified as inverse kinematics or inverse dynamics schemes and can be implemented using a variety of low level controllers.
+\textbf{OpenSoT} is a novel whole body motion library developed at the Italian Institute of Technology (IIT), which belongs to the former group: our goal has been to develop a high performance and flexible library that can generate reliably complex and efficient whole body motions.
 
-The \emph{Inverse Kinematics Problem} consists of the determination of the joint variables corresponding to a given task for the end-effector in \emph{Operational Space}. This problem is in general highly non-linear (a \emph{closed form} solution may not be available) and may have multiple solutions. In particular, if the robot is \emph{redundant} for the task, the IK Problem has an infinite number of solutions. A solution may be \emph{not admissible} due to the manipulator kinematics structure and the existence of solutions is guaranteed if the given goal in the operation space belongs to the manipulator \emph{dexterous space}.
+The \emph{Differential Inverse Kinematics Problem} consists of the determination of the joint trajectories corresponding to a given task for the end-effector in \emph{Operational Space}. This problem is in general highly non-linear, a \emph{closed form} solution may not be available, and may have multiple solutions. In the case in which the robot is \emph{redundant} with respect to the task, that is, the degrees of freedom of the robot are greater than the degrees of freedom required by the specified task,  the IK Problem admits an infinite number of solutions. In case of operational space control, at least a solution is guaranteed to exist if the given goal in operational space belongs to the manipulator \emph{dexterous space}.
 Despite the relationship between joint position variables and operational space poses is not linear, the mapping between joint velocity variables and operational space velocities is linear through the robot Jacobian:
 \begin{equation}
-    \label{eq:differential_kineamtics}
+    \label{eq:differential_kinematics}
     \dx = \J(\q)\dq
 \end{equation}
-where the Jacobian $\J$ (we will skip the dependency on the actual configuration $\q$ from now on) is expressed from a certain \emph{base link} to a certain \emph{distal link}, and operational space velocities $\dx$ of the \emph{distal link} are expressed in the \emph{base link} reference frame.
-A general solution, for the redundant case, of (\ref{eq:differential_kineamtics}) is:
+where the Jacobian $\J$ (we will skip the dependency on the actual configuration $\q$ from now on) is expressed from a certain \emph{base link} to a certain \emph{distal link}, and operational space velocities $\dx$ of the \emph{distal link} are expressed in the \emph{base link} reference frame\todo{can be written more clearly. The Jacobian depends on three dimensions, the location of the pole, the location of the frame of reference, and the orientation of the frame of reference. See from the KDL documentation :)}.
+A general solution, for the redundant case, of (\ref{eq:differential_kinematics}) is:
 \begin{equation}
     \label{eq:differential_inverse_kineamtics}
     \dq_\text{d} = \J^{\dagger}\dx_\text{d} + \left( \I - \J^{\dagger}\J \right)\dq_\text{0}
 \end{equation}
 where $\J^{\dagger}$ is the \emph{pseudo inverse} of the Jacobian and $\dq_\text{0}$ is an arbitrary joint space velocity. 
-This solution allows also \emph{task prioritization}: 
+This solution allows also for \emph{task prioritization}: 
 \begin{equation}
     \label{eq:another_task}
 \dq_\text{0} = \J_\text{0}^{\dagger}\dx_\text{0}
 \end{equation}
-in particular, the solution given by (\ref{eq:differential_inverse_kineamtics}) with (\ref{eq:another_task}), project the joint velocities of the second task into the null space of the first task removing all the components that would interfere with it \cite{DBLPReferenceRobo2008}. Many other solutions of (\ref{eq:differential_kineamtics}) are available in literature \cite{siciliano1991general}. Singularities in the Jacobian, as well as joint velocity limits, are often handled with the \emph{Singularity Robust Inverse} (SRI) \cite{nakamura1990-tp}, \cite{maciejewski1989-jp}.
+in particular, the solution given by (\ref{eq:differential_inverse_kineamtics}) with (\ref{eq:another_task}), projects the joint velocities of the second task into the null space of the first task removing all the components that would interfere with it \cite{DBLPReferenceRobo2008}. Many other solutions of (\ref{eq:differential_kinematics}) are available in literature \cite{siciliano1991general}. \todo{put solution by Siciliano}. Singularities in the Jacobian, as well as joint velocity limits, are often handled with the \emph{Singularity Robust Inverse} (SRI) \cite{nakamura1990-tp}, \cite{maciejewski1989-jp}.
 The problem of this type of schemes is that they do not handle constraints in the form of inequalities. 
 
-To overcome this problem, techniques from optimization field have been adopted.
-We can consider the inverse problem of (\ref{eq:differential_kineamtics}) as a Quadratic Programming (QP) problem with linear constraints:
+To overcome this problem, techniques from the optimization field have been adopted.
+We can consider the inverse problem of (\ref{eq:differential_kinematics}) as a Quadratic Programming (QP) problem with linear constraints:
 \begin{equation} 
 \label{eq:optimization_problem}
 \begin{array}{c}
@@ -61,12 +69,12 @@ s.t. \ \mathbf{A}\dq \leq \mathbf{b}
 \end{array}
 \end{equation}
 %where $\Arrowvert \J \dot{\q}-\mathbf{v}_d \Arrowvert = \dot{\q}^\text{T}\J^\text{T}\mathbf{J}\dot{\q} - 2(\J\dot{\q})^\text{T}\mathbf{v}_d+\mathbf{v}_d'\mathbf{v}_d$ is the quadratic cost function that is minimized and $\mathbf{A}\dot{\q} \leq \mathbf{b}$ is a general linear constraint. 
-There exist basically two big families of methods to solve the problem in (\ref{eq:optimization_problem}): \emph{active set} and \emph{interior point} methods. 
-\emph{Active set} methods consider constraints as equalities, only when active so that the problem (\ref{eq:optimization_problem}) is transformed in a QP with only equalities. At each iteration the new active set is computed checking for the infeasible constraints.
-\emph{Interior point} methods use barrier functions (most of the time $log$ functions) to penalize the cost function in the region where the bounds are violated and the solution is found to iteratively relaxing the barrier function.
+The two most popular families of methods to solve the problem in (\ref{eq:optimization_problem}) are \emph{active set} and \emph{interior point} methods. 
+\emph{Active set} methods consider constraints as equalities, in the circumstance when they are active, so that the problem (\ref{eq:optimization_problem}) is transformed in a QP with only equalities. At each iteration the new active set is computed checking for the infeasible constraints.
+\emph{Interior point} methods use barrier functions (such as $log$ functions) to penalize the cost function in the region where the bounds are violated and the solution is found by iteratively relaxing the barrier function\todo{it should be the opposite?}.
 Even under the optimization point of view, the task prioritization can be handled considering the minimization of the cost function under equality constraints given by the minimization of previous tasks. This technique is commonly referred as \emph{Stack of Tasks} (SoT) \cite{mansard:icar:09}. 
 
-\textbf{OpenSoT} implements the idea of decoupling atomic tasks/constraints descriptions and solvers to execute multiple tasks and achieve complex motion behaviors. It employs a solver implementing a cascade of QP problems, and a set of tasks and constraints in velocity space in order to solve a generic hierarchical inverse kinematics problem on a floating or fixed base robot. The IK solver consists on a state machine that hides all the complexity of the underneath QP solver based on a state-of-art library in QP resolution using the active set approach: \emph{qpOASES} \cite{ferreau2013}.
+\textbf{OpenSoT} implements the idea of decoupling atomic tasks/constraints descriptions and solvers to execute multiple tasks and achieve complex motion behaviors. It employs a solver implementing a cascade of QP problems, and a set of tasks and constraints in velocity space in order to solve a generic hierarchical inverse kinematics problem on a floating or fixed base robot. The stock IK solver consists on a state machine that hides all the complexity of the underneath QP solver based on a state-of-art library in QP resolution using the active set approach: \emph{qpOASES} \cite{ferreau2013}.
 This yields the following features that make the implementation of \textbf{OpenSoT} unique and attractive:   
 \begin{itemize}
 \item Demonstrates adequate modularity through the separation of task descriptions, control schemes and solvers maximizing customization, flexibility and expandability.  
@@ -74,56 +82,36 @@ This yields the following features that make the implementation of \textbf{OpenS
 \item Demonstrates computation efficiency to allow for real time performance implementations.
 \item Allows ease of use and application with arbitrary robots through the Universal and Semantic Robotic Description Formats (URDF and SRDF).
 \end{itemize}
-The reliability and robustness of \textbf{OpenSoT} framework has been proved during the DRC Finals since it has been used by the WALK-MAN team, to perform all the manipulation tasks involving \emph{whole-body} motions while taking into account various type of constraints. During the development period, the \textbf{OpenSoT} framework allowed the fast evaluation of different solutions for the same high-level task reformulating the IK Problem without changing the IK solver structure. 
+The reliability and robustness of \textbf{OpenSoT} framework has been proved during the DRC Finals since it has been used by the WALK-MAN team, to perform all the manipulation tasks involving \emph{whole-body} motions while taking into account various type of constraints. During the development period, the \textbf{OpenSoT} framework allowed the fast evaluation of different formulations of the whole-boby control problem in order to optimally solve the tasks of the competition, thusly demonstrating the benefits of a flexible high-level framework in robotics rapid application development. 
 The architecture of \textbf{OpenSoT} encourages collaboration and helps integration and code maintenance.
 
-This paper is divided in the following parts: \textbf{\nameref{sec:state_of_the_art}} where we explore some of the existing methods and library for IK and ID that have been effectively used in real robotic platforms, \textbf{\nameref{sec:walkman_wholebody}} where we introduce the theoretical foundation of IK, \textbf{\nameref{open_sot}} where the presented framework is presented, \textbf{\nameref{sec:robust_ik_solver}} where the main features of the default IK solver are explained,
-%\textbf{\nameref{sec:software_architecture}} where the basic API and tools are introduced, \textbf{\nameref{sec:examples}}  
-and finally \textbf{\nameref{sec:conclusions}}.  
+%\todo{should I integrate some of this stuff here?}
+%Recent approaches make use of Quadratic Programming (QP) Optimization that makes also possible to specify linear constraints for the IK to affect the solution:
+%\begin{equation}
+%\begin{array} {ccc}
+%    \dq_d  = & \underset{ \dq }{ \text{argmin} } & \left\| \J_n \dq - \dx_\text{n,d} \right\| + \lambda \left\| \dq \right\| \\
+%    & {s.t.} & \A_1 \dq = \A_1 \dq_1 \\
+%    & &  \vdots \\
+%    & & \A_{n-1} \dq = \A_{n-1} \dq_{n-1} \\
+%    & & \A_{c,1}\dq \leq \b_{c,1} \\
+%    & & \vdots \\
+%    & & \A_{c,n}\dq \leq \b_{c,n}
+%\end{array}
+%\label{eq:sot_full}
+%\end{equation}
+%where $\A$ matrices and $\b$ vectors are constraints.
+%In \eqref{eq:sot_full}, priorities are taken into account considering the previous solutions $\dq_i, \; i < n$ and constraints of the type {$\mathbf{A}_i \dq = \mathbf{A}_i \dq_i, \; \forall i < n$},  so that the optimality of all higher priority tasks is not changed by the current solution \cite{mansard:icar:09}. The second term in the cost function of \eqref{eq:sot_full} permits to handle kinematics singularities in order to avoid high joint velocities \cite{nakamura1990-tp}. A similar structure can be used to solve the IK problem at the acceleration level.
 
-Inverse Kinematics (IK) is a fundamental step in robots control since it maps high level Cartesian commands into joint space commands. This step is in general highly non-linear, for this reason linearization through the robot Jacobian has been proposed and it is commonly used (named \emph{Differential} IK):
-\begin{equation}
-    \label{eq:differential_kineamtics}
-    \dx = \J(\q)\dq
-\end{equation}
-where $\dq$ are joint space velocities, the Jacobian $\J$ (we will skip the dependency on the actual configuration $\q$ from now on) is expressed from a certain \emph{base link} to a certain \emph{distal link}, and operational space velocities $\dx$ of the \emph{distal link} are expressed in the \emph{base link} reference frame.
-A general solution, for the redundant case of (\ref{eq:differential_kineamtics}) is:
-\begin{equation}
-    \label{eq:differential_inverse_kineamtics}
-    \dq_\text{d} = \J^{\dagger}\dx_\text{d} + \left( \I - \J^{\dagger}\J \right)\dq_\text{0}
-\end{equation}
-where $\J^{\dagger}$ is the \emph{pseudo inverse} of the Jacobian and $\dq_\text{0}$ is an arbitrary joint space velocity. 
+%Many tasks and constraints have been presented in literature for the framework depicted in \eqref{eq:sot_full}, examples are: joint limits, joint velocity limits, self collision avoidance \cite{kanehiro2008local}, Cartesian velocity limits, minimum joint acceleration \cite{flacco2012-cr} and \emph{Capture Point} \cite{ ramos-humanoid-14} for humanoid robots. In particular, joint limits and joint velocity limits are fundamental when working with real robotic hardware.  
 
-Recent approaches make use of Quadratic Programming (QP) Optimization that makes also possible to specify linear constraints for the IK to affect the solution:
-\begin{equation}
-\begin{array} {ccc}
-    \dq_d  = & \underset{ \dq }{ \text{argmin} } & \left\| \J_n \dq - \dx_\text{n,d} \right\| + \lambda \left\| \dq \right\| \\
-    & {s.t.} & \A_1 \dq = \A_1 \dq_1 \\
-    & &  \vdots \\
-    & & \A_{n-1} \dq = \A_{n-1} \dq_{n-1} \\
-    & & \A_{c,1}\dq \leq \b_{c,1} \\
-    & & \vdots \\
-    & & \A_{c,n}\dq \leq \b_{c,n}
-\end{array}
-\label{eq:sot_full}
-\end{equation}
-where $\A$ matrices and $\b$ vectors are constraints.
-In \eqref{eq:sot_full}, priorities are taken into account considering the previous solutions $\dq_i, \; i < n$ and constraints of the type {$\mathbf{A}_i \dq = \mathbf{A}_i \dq_i, \; \forall i < n$},  so that the optimality of all higher priority tasks is not changed by the current solution \cite{mansard:icar:09}. The second term in the cost function of \eqref{eq:sot_full} permits to handle kinematics singularities in order to avoid high joint velocities \cite{nakamura1990-tp}. A similar structure can be used to solve the IK problem at the acceleration level.
+\subsection{Related Work}
+\label{sec:related_work_opensot}
+Many approaches to solve the IK problem are presented in the literature and most of them address the singularity problem through Tikanov regularisation, with approaches similar to the \emph{Singularity Robust Inverse} (SRI), but lack the possibility to specify constraints, whereas the aforementioned QP formulation allows for an elegant formulation of the IK problem considering linear constraints\todo{write this more clearly?}.
+\textbf{OpenSoT} is thus inspired by the \emph{Stack of Tasks}, where the stock IK solver is based on QP (Quadratic Programming) optimization with the possibility to specify \emph{hard} \cite{kanoun2009prioritizing} and \emph{soft} \cite{chiacchio1991closed} priorities between tasks as well as linear constraints and bounds \cite{escande2014hierarchical}.
 
-Many tasks and constraints have been presented in literature for the framework depicted in \eqref{eq:sot_full}, examples are: joint limits, joint velocity limits, self collision avoidance \cite{kanehiro2008local}, Cartesian velocity limits, minimum joint acceleration \cite{flacco2012-cr} and \emph{Capture Point} \cite{ ramos-humanoid-14} for humanoid robots. In particular, joint limits and joint velocity limits are fundamental when working with real robotic hardware.  
+An interesting approach to hierarchical inverse kinematics resolution is given by \cite{Liu2015-yq} in the form of a Generalized Hierarchical Control (GHC). GHC is developed by means of a novel Generalized Projector which allows to project lower priority tasks into higher priority tasks fully or partially, thus implementing mixable \emph{strict} and \emph{non-strict hierarchies} (i.e. \emph{hard} and \emph{soft priorities}) using a single generalized projecting operation. This allows to mix strict and non-strict hierarchies and to smoothly change priorities, smoothly insert and remove tasks, as well as define complex priority relationships which are better described as a priority network rather than a lexicographic hierarchy.
 
-In this work, a fundamental constraint for the IK step is presented: the robot dynamics. The computed velocities/accelerations in \eqref{eq:sot_full} may generate unfeasible motions, in terms of high joint torques, causing the damage of the robot. For this reason it is important to constrain the generated joint velocities/accelerations considering the dynamics during the task execution. The constraint will be expressed both at the acceleration and velocity level in order to be applied to any IK scheme.  
-
-
-
-\subsection{State of the Art}
-\label{sec:state_of_the_art}
-As mentioned before, many approaches to solve the IK problem are presented in the literature and most of them address  the singularity problem with approaches such as the \emph{Singularity Robust Inverse} (SRI), but lack the possibility to specify constraints, whereas QP solvers allow for an elegant formulation of the IK problem considering linear constraints.
-\textbf{OpenSoT} is thus inspired by the \emph{Stack of Tasks}, where we developed an IK solver based on QP (Quadratic Programming) optimization with the possibility to specify \emph{hard} \cite{kanoun2009prioritizing} and \emph{soft} \cite{chiacchio1991closed} priorities between tasks as well as linear constraints and bounds \cite{escande2014hierarchical}.
-
-In \cite{Liu2015-yq} a Generalized Hierarchical Control (GHC) is developed by means of a novel Generalized Projector which allows to project lower priority tasks into higher priority tasks fully or partially, thus implementing mixable \emph{strict} and \emph{non-strict hierarchies} (i.e. \emph{hard} and \emph{soft priorities}) using a single generalized projecting operation. This allows to mix strict and non-strict hierarchies and to smoothly change priorities, smoothly insert and remove tasks, as well as define complex priority relationships which are better described as a priority network rather than a lexicographic hierarchy.
-
-In \cite{Hauser2014-sq} a method to optimize trajectories so to satisfy contact and dynamic constraints is proposed.
+In \cite{Hauser2014-sq} a method to optimize precomputed joint trajectories so as to satisfy contact and dynamic constraints is proposed.
 
 In \cite{Del_Prete2014-ph} a way to specify hierarchical optimal problems is presented, with application to control of a humanoid robot.
 
@@ -139,7 +127,8 @@ There are many other frameworks including those that are based on Inverse Dynami
 Based on the operational space formalism the \emph{Standard Control Library} \cite{Menon_undated-hv} implements the whole-body multi-task control framework previously cited and it is an updated version of \cite{Philippsen2011-mq}.
 A recent new library based on the same concept is \cite{Fok2015-cn}. 
 
-In \cite{Beeson_undated-te} their solution is compared to popular IK schemes as offered by \emph{KDL} \cite{Smits2011-db}, highlighting the advantages of modern approaches to the common classic IK schemes.
+% TODO: cite trak-ik more in depth
+In \cite{Beeson_undated-te} their solution is compared to popular IK schemes as offered by \emph{KDL} \cite{Smits2011-db}, highlighting the advantages of optimization approaches to the common classic IK schemes.
 
 None of the considered libraries provides a complete set of implemented tasks, constraints and solvers that permits to describes and solve IK problems in an easy and versatile way.
 % TODO: Flacco published two interesting papers, "Unilateral constraints in the Reverse Priority redundancy resolution method" (PDF already available, IROS15) and "A Reverse Priority Approach to Smooth Task Transitions" submitted in T-RO, remember to cite as soon as it gets accepted
@@ -147,10 +136,10 @@ None of the considered libraries provides a complete set of implemented tasks, c
 \subsection{A Framework for Whole-Body Control}
 \subsubsection{Whole body control}
 \label{sec:walkman_wholebody}
-While the whole-body control definition is still subject to some debate, we refer here to those control laws that allow to execute tasks by automatically using the whole robot structure. The whole-body control laws typically allow to execute and mix several tasks at the same time,  by making use of the redundancies provided by the robot. Preferably they should be as generic as possible in allowing specification of tasks both in Operational and Cartesian space, and in particular, allow for the control in Operational space of a generic part of the robot, even when does do not coincide with the end-effectors. The whole-body control  problem can be solved by many approaches, as shown in the previous section, but we will concentrate on a kinematic control law that allows to solve the whole-body control problem  in generic kinematic trees, with particular emphasis to the generic case of a floating-base robot.
+Whole-body control here will be referred to those control laws that allow to execute tasks by using the whole robot structure. The whole-body control laws typically allow to execute several tasks at the same time when possible,  by making use of the redundancies provided by the robot. Preferably they should be as generic as possible in allowing specification of tasks both in Operational and Cartesian space, and in particular, allow for the control in Operational space of any part of the robot, even when does do not coincide with the end-effectors. The whole-body control  problem can be solved by many approaches, as shown in the previous section, but we will concentrate on a kinematic control law that allows to solve the whole-body control problem  in generic kinematic trees, with particular emphasis to the generic case of a floating-base robot.
 
 \subsubsection{Inverse Kinematics}
-We consider a robot that executes $n$ tasks simultaneously, and for each of these tasks $T_i$, a proper error function $\e_i(\q,t)$ is provided, describing the task error.
+We consider a robot executing $n$ tasks simultaneously, and for each of these tasks $T_i$, a proper error function $\e_i(\q,t)$ is provided, describing the task error.
 The time derivative of the error can be computed as
 \begin{equation}
 \de_i = \frac{\partial \e_i}{\partial \q}\dq + \frac{\partial \e_i}{\partial t} = \J_i\dq + \frac{\partial \e_i}{\partial t}
@@ -161,11 +150,9 @@ with $\J_i$ the error Jacobian. During the execution of a generic task it is des
 \end{equation}
 If the robot is redundant with respect to a task, secondary tasks can be also added and executed without affecting the performance of the primary task, and given a set of tasks described by the couple 
 $T_i = (\J_i, \de^*_i)$, the robot can be commanded to execute them using its whole body motion capabilities. In order to implement the method and obtain this result, the relative importance between tasks needs first to be defined. Thus, two kinds of relationships: \emph{hard priority} and \emph{soft priority} needs to be set. 
-A task has \emph{hard priority} with respect to another task if the latter can not deteriorate the solution of the first one. \emph{Soft priorities} are defined between tasks at the same level so all the solutions are influenced by each other proportionally to theirs weights.
+A task has a higher \emph{hard priority} with respect to another task if the latter can not deteriorate the performance of the first one. \emph{Soft priorities} are defined between tasks so all the solutions are influenced by each other proportionally to theirs weights, or in other terms, a tradeoff between the performance of competing task is obtained which is continuously tunable by means of a weight coefficient.
 
-%While searching a solution, the performance in executing a task should never be deteriorated by executing a task with a hard, lower priority, while tasks put in different, soft priorities can influence the performance of each other if the error in executing each task becomes too large.
-
-The execution of a set of tasks has a well-known solution in the stack of tasks, where hard priorities are enforced by the order of the task in the stack. To take into account also soft priorities the augmented Jacobian formulation \cite{chiacchio1991closed} can be employed. It must be noted though that the augmented Jacobian formulation alone cannot enforce hard priorities since adding many tasks together can generate an ill-conditioned augmented Jacobian matrix.
+The execution of a hierachy of tasks related by an hard priority relation has a well-known solution in the stack of tasks, where hard priorities are enforced by the order of the task in the stack. To take into account also soft priorities the augmented Jacobian formulation \cite{chiacchio1991closed} can be employed. It must be noted though that the augmented Jacobian formulation alone cannot enforce hard priorities since adding many tasks together can generate an ill-conditioned augmented Jacobian matrix.
 Therefore, to generate whole-body motions, a series of QP problems in cascade is instead solved \cite{kanoun2011kinematic}. This is a well known method to derive motions by executing tasks adding bilateral constrains to the inverse kinematics problem \cite{escande2014hierarchical}.
 A generic task can be described as
 \begin{equation}
@@ -198,8 +185,8 @@ In general, the  $n^{\text{th}}$ task will then be written as
 \end{array}
 \label{eq:sot_full}
 \end{equation}
-where $\dq_d$ is the desired velocity (control variable).
-In \eqref{eq:sot_full} the previous solutions $\dq_i, \; i < n$ are taken into account  with constraints of the type {$\mathbf{A}_i \dq = \mathbf{A}_i \dq_i, \; \forall i < n$},  so that the optimality of all higher priority tasks is not changed by the current solution.
+where $\dq_d$ is the joint displacement (control variable) which minimizes the objective function and satisfy the given constraints, if they are a feasible set.
+In \eqref{eq:sot_full} the previous solutions $\dq_i, \; i < n$ are taken into account by specifying constraints of the type {$\mathbf{A}_i \dq = \mathbf{A}_i \dq_i, \; \forall i < n$},  so that the optimality of all higher priority tasks is not changed by the solving for the $n$-th task.
 %\color{red}
 %The minimization of the $W$-weighted $2$-norm of the $n$th task, expressed as before, can be easily transformed into a QP task by writing
 %\begin{equation}
@@ -210,7 +197,7 @@ In \eqref{eq:sot_full} the previous solutions $\dq_i, \; i < n$ are taken into a
 %\label{eq:sot}
 %\end{equation}
 %\color{black}
-While in \eqref{eq:sot_full} the first task has a relationship of hard priority with respect to the second, and so on, for each \emph{level}  of priority, a soft priority relationship between tasks can be imposed introducing the relative weights $\beta_i$, so that the augmented Jacobians and the error vectors can be written as
+While in \eqref{eq:sot_full} the first task has a relationship of hard priority with respect to the second, and so on, for each \emph{level} of priority, a soft priority relationship between tasks can be imposed introducing the relative weights $\beta_i$, so that the augmented Jacobians and the error vectors can be written as
 \begin{equation}
 \label{eq:augmented_jacobian}
 \begin{array}{l}
@@ -221,25 +208,22 @@ While in \eqref{eq:sot_full} the first task has a relationship of hard priority 
 \beta_1\e_1^T & \dotsc& \beta_n\e_n^T\end{bmatrix}^T 
 \end{array}
 \end{equation}
-where the soft priority between tasks is altered by tuning the relative weights $\beta_i$, with higher priority tasks having larger $\beta_i$. As already mentioned, in this case the tasks can still influence each other performance.
+where the soft priority between tasks is altered by tuning the relative weights $\beta_i$, with higher priority tasks having larger $\beta_i$. As already mentioned, in this case the tasks can still influence each other's performance.
  A mixture of hard and soft priorities is in general needed to describe a stack of tasks.
- The solution obtained can then be sent directly to a velocity controlled robot or integrated in a position controlled robot as
+ The solution obtained can then be commanded directly to a velocity controlled robot or integrated to command a position controlled robot as
 \begin{equation}
-    \q_d = \q + \dq \Delta t 
+    \q_d = \q + \dq \Delta t
 \end{equation}
+\todo{$\q+\dq$}
 where $\Delta t$ is the control loop period.
 
 \subsubsection{OpenSoT} \label{open_sot}
-\textbf{OpenSoT} is a robotics library tool oriented to Whole-Body Control. The main idea behind its implementation is to decouple the task and constraint description to the solver used to solve the general Inverse Kinematics/Dynamics problem. This distinction allows to easily switch the control, even with the same task description, by using a different solver. \textbf{OpenSoT} aims at providing a standard way to describe the aforementioned entities in an atomic way, and at the same time to build a repository of common entities that can be reused to create a generic stack using a user friendly development and integration interface.
+\textbf{OpenSoT} is a robotics library tool oriented to Whole-Body Control. The main idea behind its implementation is to decouple the task and constraint description to the solver used to solve the general Inverse Kinematics/Dynamics problem. \textbf{OpenSoT} aims at providing a standard way to describe the aforementioned entities in an atomic way, and at the same time to build a repository of common entities that can be reused to create a generic stack using a user friendly development and integration interface.
 
 \textbf{OpenSoT} offers classes %(in Fig. \ref{open_sot_inherit})% 
-to describe different tasks and constraints used to specify the robot task, and solvers implementing to obtain solution to the control problem. According to the control type, different controllers are available in literature. Defining a task once in a proper way still allows to switch between different control laws, as shown in \cite{Nakanishi08operationalspace}, thus decoupling task description and type of control. 
+to describe different tasks and constraints whicah can be used to design the robot behavior during the task execution, and solvers with various capabilities and strategies to obtain solutions to the control problem. According to the control type, different controllers are available in literature. Defining a task once in a proper way allows to switch between different control laws, as shown in \cite{Nakanishi08operationalspace}, thus decoupling task description and control type.
 The same applies to constraints and bounds \cite{flacco2012-cr}. 
-Other than putting tasks in a stack to specify a hard priority between them during the solving phase, it is possible to perform a set of basic operations which allow composition (the \emph{Aggregate} task), selection (the \emph{SubTask} utility) and masking (the \emph{ActiveJointMask} selector).
-
-\subsubsection{OpenSoT: again?}
-\label{sec:opensot}
-OpenSoT is a framework developed at the \emph{Istituto Italiano di Tecnologia} and aimed to control robots in Operational space \cite{AlessioEnrico2015}. OpenSoT implements the idea of decoupling atomic tasks/constraints descriptions and solvers to execute multiple tasks and achieve complex motion behaviors. 
+Other than putting tasks in a stack to specify hard priorities during the solving phase, it is possible to perform a set of basic operations which allow composition (the \emph{Aggregate} task), selection (the \emph{SubTask} utility) and masking (the \emph{ActiveJointMask} selector).
 
 \begin{figure}[htb] 
 \centering 
@@ -248,27 +232,16 @@ OpenSoT is a framework developed at the \emph{Istituto Italiano di Tecnologia} a
 \label{walkman_kinematics}
 \end{figure}
 
-It employs a solver, based on the formulation in \eqref{eq:sot_full}, implementing a cascade of QP problems, and a set of tasks and constraints in velocity space in order to solve a generic hierarchical inverse kinematics problem on a floating or fixed base robot. The IK solver consists of a state machine that hides all the complexity of the underneath QP solver based on a state-of-art library in QP resolution using the \emph{active set} approach: \emph{qpOASES} \cite{ferreau2013}.
-This yields the following features that make the implementation of OpenSoT unique and attractive:   
-\begin{itemize}
-\item Demonstrates high modularity through the separation of task descriptions, control schemes and solvers maximizing customization, flexibility and expandability.  
-\item Provides user friendly interfaces for defining tasks, constraints and solvers to promote integration and cooperation in the emerging field of whole-body hierarchical control schemes.
-\item Demonstrates computation efficiency to allow for real time performance implementations.
-\item Allows ease of use and application with arbitrary robots through the Universal and Semantic Robotic Description Formats (URDF and SRDF).
-\end{itemize}
-The architecture of OpenSoT encourages collaboration and helps integration and code maintenance \footnote{The OpenSoT library is open-source and downloadable at\\ \texttt{https://github.com/robotology-playground/OpenSoT}}. With all this in mind we developed a \emph{library} of tasks and constraints and the robot dynamics constraint is part of the latter.
-
-
 \subsection{OpenSoT Tasks}
 In \textbf{OpenSoT}, a task $T_i$ is in general defined as:
 \begin{equation}
 T_i = \T \left( \J_i,\, \de^*_i \right)
 \end{equation}
-For the solver, a task is a matrix and a vector which will get used and interpreted differently depending on the solving algorithm. For the case of the QP stack,
+For the solver, a task can be defined as a matrix and a vector, the task Jacobian and the task error respectively, which will get used by the solving algorithm. For the case of the QP stack,
 \begin{equation}
 T_i = \T \left( \A_i,\, \b_i \right)
 \end{equation}
-where $\A_i^T\A_i$ is the task Hessian and $\A_i^T\b_i$ the task gradient.
+where $\A_i^T\A_i$ is the task Hessian and $\A_i^T\b_i$ the task gradient, in this case expressed by choosing the identity metric for the QP problem. In general, a different metric can be expressed by correctly designing the $W$ matrix the previous expression \todo{insert expression}, which will coincide to a different metric during the minimizatin of the $2$-norm of the residuals vector.
 
 \subsubsection{Task operations: the Math of Tasks}
 As previously specified, task operations can be used, together with the stacking operation, to build a complex stack out of simple stack definitions. These operations can be also defined using a simple semantic, which we call \emph{Math of Tasks} (Table \ref{table:mot}). 
@@ -289,7 +262,7 @@ As previously specified, task operations can be used, together with the stacking
 \end{table}
 
 \paragraph{Aggregated}
-The aggregated task constructs an augmented Jacobian starting from a definition of more basic tasks. This allows to enforce soft priorities between tasks that get incorporated into the augmented task. The formulation can be written as
+The aggregated task constructs an augmented Jacobian starting from a definition of more basic tasks. This allows to enforce soft priorities between tasks that get incorporated into the augmented task Jacobian. The formulation can be written as
 \begin{eqnarray}
 T_\text{agg} = & \T \left( \left[ \J_{1}^T\, \dotsc \,\J_n^T\right]^T, \quad \left[ \b_{1}^T\, \dotsc \,\b_{n}^T\right]^T \right)
 \end{eqnarray}
@@ -363,7 +336,7 @@ where $\mathbf{p}_d = [x_d \quad y_d \quad z_d]$ is the desired position and $\b
 A particular case is the \emph{CoM} task which is defined as a Cartesian position task. 
 In both cases, the tasks can become minimum Cartesian velocity tasks by setting $\lambda=0$.
 
-\paragraph{Interaction}
+\paragraph{Interaction} \todo{also in final version?}
 The interaction task consists in force control through an admittance scheme. This task is built on top of the Cartesian task since pose and velocity references are generated from a wrench error:
 \begin{equation}
 \Delta\x = \mathbf{C} \left({^\text{b}\w_\text{d,ee}} - {^\text{b}\w_\text{m,ee}} \right )
@@ -386,7 +359,7 @@ The minimum effort task is defined in joint space as:
 \begin{equation}
 T_\text{mineffort} = \T \left(\I, \quad \alpha_g\nabla(g(\q)^Tg(\q))\right)
 \end{equation}
-where $g(\q)$ are the torques due to gravity computed through ID. The gradient is computed numerically by means of two-point estimation and the Hessian is set to be the identity, so as to effectively implement a \emph{Gradient Projection Method} \cite{Rosen1960-gm}. 
+where $g(\q)$ are the torques due to gravity computed through Iverse Dynamics. The gradient is computed numerically by means of two-point estimation and the Hessian is set to be the identity, so as to effectively implement a \emph{Gradient Projection Method} \cite{Rosen1960-gm}. 
 
 \paragraph{Manipulability}
 The manipulability task is again defined in joint space as:
@@ -397,14 +370,14 @@ with
 \begin{equation}
 h(\q) = det\left(\sqrt{\J(\q)^T\J(\q)}\right)
 \end{equation}
-being the manipulability index of the robot. As for the minimum effort task, the gradient is computed numerically. Is worth to notice the minus sign since we want to maximize the manipulability of the robot.
+being the manipulability index of the robot. As for the minimum effort task, the gradient is computed numerically. The minus sign  is worth noticing since the task is a maximization of the chosen manipulability index of the robot.
 
-\paragraph{MinimizeAcceleration}
+\paragraph{MinimizeAcceleration} \todo{also in final version?}
 The minimize acceleration task is also defined in joint space as:
 \begin{equation}
 T_\text{minacc} = \left(\I, \quad \lambda\dq_\text{prev}\right)
 \end{equation}
-This task will try to minimize the change in velocity in joint space. When the $\lambda$ of the task is equal to $\frac{1}{dT}$, it will become independent from the time step size and will effectively a first order approximation of joint acceleration minimization.
+This task will try to minimize the change in velocity in joint space. When the $\lambda$ of the task is equal to $\frac{1}{dT}$, it will become independent from the time step size and will effectively be a first order approximation of joint acceleration minimization.
 
 \paragraph{Postural}
 A postural task is defined in joint space as:
@@ -414,6 +387,7 @@ T_p = \left(\I, \quad  \dq_d + \lambda(\q_d - \q)\right)
 \end{equation}
 The task can become a minimum velocity task by setting $\lambda=0$ and $\dq_\text{d} = 0$, as in this case the cost function is reduced to $\left \| \dq \right \|_\textbf{W}$.
 
+\todo{insert class diagram?}
 %\begin{figure}
 %  \centering
 %  \vspace*{0.05in}
@@ -451,14 +425,14 @@ Bilateral constraints and unilateral and bilateral bounds can be expressed in te
 
 Constraints and bounds can be applied to a single task (i.e. $T_i << \C$) or to the whole stack (i.e. $S << \C$): applying constraints to the stack is equivalent to applying them to every task in the stack.
 We will call the former \emph{local} constraints, while we will refer to the latter as \emph{global}. In general, when a \emph{local} constraint is applied to a certain task, it should be applied also to all its lower priority tasks in the stack to make sure that it will be enforced in the final solution. There are, anyway, conditions when a constraint does not need to be enforced directly to lower priority tasks, since its enforcement is implicit in keeping optimality of the higher priority tasks.
-Consider a task $T_i=\T\left(J_i,\de^*_i\right)$, $\J \in \mathbb{R}^{m\times n}$ with $rank(\J) = m$, a stack $S$ composed of $n$ tasks, and a constraint $C_j=\C\left(\A_{c,j},\,\b_{c,j}\right)$. If we apply the constraint to the task $T_i << C_j$, if 
+Consider a task $T_i=\T\left(J_i,\de^*_i\right)$, $\J \in \mathbb{R}^{m\times n}$ with $rank(\J) = m$, a stack $S$ composed of $n$ tasks, and a constraint $C_j=\C\left(\A_{c,j},\,\b_{c,j}\right)$. If we apply the constraint to the task $T_i << C_j$, if \todo{it can be written more coincisely}
 \begin{equation}
 rank\left ( \begin{bmatrix}
 \J_i\\ 
 \A_j
 \end{bmatrix} \right ) = m
 \end{equation}
-then $C_j$ can be applied as a local constraint to $T_i$, and it will automatically be enforced on lower priority tasks up to the final solution $\dq_n^*=\dq_d$ ($T_j \forall j>i$) since it will be implicit in the solution $\dq_i$ (check Appendix \ref{app:local-constr} for the proof).
+then $C_j$ can be applied as a local constraint to $T_i$, and it will automatically be enforced on lower priority tasks up to the final solution $\dq_n^*=\dq_d$ ($T_j \forall j>i$) since it will be implicit in the solution $\dq_i$.
 
 \paragraph{Aggregated}
 The aggregated constraint performs merging of a list of constraints into a single constraint, in particular piling the equalities and inequalities constraints, and merging the bounds as follows:
@@ -529,10 +503,10 @@ with $\dq_\text{max}$ the maximum allowed joint velocity.
 %with $\text{u}_\text{j\_lims}$ and $\text{l}_\text{j\_lims}$ the $\dq$
 %where $\alpha_i \leq \alpha_{i+1}$ scales the bounds in order to implement a simple velocity allocation scheme between tasks at different priority levels.
 
-\paragraph{Dynamic Filter}
-One of the fundamental problem in IK is that some assigned Cartesian reference trajectories might be dynamically unfeasible by the robot. This means that the robot might get damaged since the required joint torque for a certain motion could be too high. Various techniques have been presented in the past to avoid this problem, one of the most famous is the \emph{Dynamic Filter} \cite{Yamane:04}. This technique basically uses an ID step to filter the generated joint accelerations from the IK solution. 
+\paragraph{Dynamic Filter} \todo{cut from here? Ask Enrico}
+One of the fundamental problems in IK is that some assigned Cartesian reference trajectories might be dynamically unfeasible by the robot. This means that the robot might get damaged since the required joint torque for a certain motion could be too high. Various techniques have been presented in the past to avoid this problem, one of the most famous is the \emph{Dynamic Filter} \cite{Yamane:04}. This technique basically uses an ID step to filter the generated joint accelerations from the IK solution. 
 
-In this work we formulate the \emph{Dynamic Filter} as a constraint. The dynamics of the robot can be written as:
+The \emph{Dynamic Filter} can be formulated as a constraint. The dynamics of the robot can be written as:
 \begin{equation}
 \mathbf{M}(\mathbf{q})\mathbf{\ddot{q}} + \mathbf{C}(\mathbf{q},\mathbf{\dot{q}})\mathbf{\dot{q}} + \mathbf{G}(\mathbf{q}) = \boldsymbol{\tau} - \mathbf{J}^T_c\mathbf{f}_c
 \end{equation}
@@ -560,43 +534,6 @@ Practically speaking, as we did for other constraints, it is useful to have a sc
 \leq  \sigma \left(\Delta T \left(\mathbf{D}(\mathbf{q}, \mathbf{\dot{q}}) + \boldsymbol{\tau}_\text{max}\right)+ \mathbf{M}(\mathbf{q})\mathbf{\dot{q}}_\text{prev}\right)
 \label{robot_dynamics_constraint_2}
 \end{equation}
-
-\label{sec:robot_dynamic_constraint3}
-One of the fundamental problem in IK is that some assigned Cartesian reference trajectories might be dynamically unfeasible by the robot. This means that the robot might get damaged since the required joint torques for a certain motion could be too high. Various technique have been presented in the past to avoid this problem, one of the most famous is the \emph{Dynamic Filter} \cite{Yamane:04}. This technique basically uses an Inverse Dynamics step to filter the generated joint accelerations from the IK solution. 
-
-In this work we formulate the \emph{Dynamic Filter} as a constraint. The dynamics of the robot can be written as:
-\begin{equation}
-\mathbf{M}(\mathbf{q})\mathbf{\ddot{q}} + \mathbf{C}(\mathbf{q},\mathbf{\dot{q}})\mathbf{\dot{q}} + \mathbf{G}(\mathbf{q}) = \boldsymbol{\tau} - \mathbf{J}^T_c\mathbf{f}_c
-\end{equation}
-where $\mathbf{M}(\mathbf{q})$ is the joint space inertia matrix, $\mathbf{C}(\mathbf{q},\mathbf{\dot{q}})$ takes into account centrifugal and Coriolis terms, $\mathbf{G}(\mathbf{q})$ are the gravity torques, $\boldsymbol{\tau}$ are the joint torques and $\mathbf{J}^T_c\mathbf{f}_c$ are the torques due to contacts (that we measure from the force/torque sensors). 
-
-Considering an acceleration level control and taking into account that each joint can provide $\left[\tau_{\text{i,min}}, \ \tau_{\text{i,max}} \right]$, it is possible to write the constraint as:
-\begin{equation}
-\mathbf{D}(\mathbf{q, \dot{q}}) + \boldsymbol{\tau}_\text{min}\leq \mathbf{M}(\mathbf{q})\mathbf{\ddot{q}} \leq  \mathbf{D}(\mathbf{q, \dot{q}}) + \boldsymbol{\tau}_\text{max}
-\end{equation}
-with $\mathbf{D}(\mathbf{q, \dot{q}},\mathbf{f}_c) = -\left(\mathbf{C}(\mathbf{q},\mathbf{\dot{q}})\mathbf{\dot{q}} + \mathbf{G}(\mathbf{q}) - \mathbf{J}^T_c\mathbf{f}_c \right )$.
-
-Despite the constraint is naturally described at the acceleration level, in this work we are considering velocity level control, so it is possible to approximate the joint acceleration $\mathbf{\ddot{q}}$ as:
-\begin{equation}
-\mathbf{\ddot{q}} \simeq \frac{\mathbf{\dot{q}}^*-\mathbf{\dot{q}}}{\Delta T}
-\end{equation}
-then the constraint can be rewritten at the velocity level as:
-\begin{multline}
-\Delta T \left(\mathbf{D}(\mathbf{q}, \mathbf{\dot{q}}) + \boldsymbol{\tau}_\text{min}\right ) + \mathbf{M}(\mathbf{q})\mathbf{\dot{q}} \leq
-\mathbf{M}(\mathbf{q})\mathbf{\dot{q}}^* \\
-\leq  \Delta T \left(\mathbf{D}(\mathbf{q}, \mathbf{\dot{q}}) + \boldsymbol{\tau}_\text{max}\right)+ \mathbf{M}(\mathbf{q})\mathbf{\dot{q}}
-\label{robot_dynamics_constraint}
-\end{multline}
-where $\mathbf{\dot{q}}^*$ are the new joint velocities references.
-
-A similar idea was presented also in \cite{park1998-ib} but contact forces were not taken in consideration, while they are fundamental when working with floating base robots.
-Practically speaking, it is useful to have a scaling factor $\sigma \ \in \ \left(0, \ 1 \right]$ in front of the constraint, which allows to smoothen the solution as the robot approaches its dynamic limits:
-\begin{multline}
-\sigma \left(\Delta T \left(\mathbf{D}(\mathbf{q}, \mathbf{\dot{q}}) + \boldsymbol{\tau}_\text{min}\right ) + \mathbf{M}(\mathbf{q})\mathbf{\dot{q}} \right)\leq
-\mathbf{M}(\mathbf{q})\mathbf{\dot{q}}^* \\
-\leq  \sigma \left(\Delta T \left(\mathbf{D}(\mathbf{q}, \mathbf{\dot{q}}) + \boldsymbol{\tau}_\text{max}\right)+ \mathbf{M}(\mathbf{q})\mathbf{\dot{q}}\right)
-\label{robot_dynamics_constraint_2}
-\end{multline}
 
 %\subsection{OpenSoT Solver}
 %\emph{OpenSoT} provides a class to implement different \emph{Solvers} that uses the classes \emph{Tasks}, \emph{Constraints} and \emph{Bounds} to solve the IK problem for a desired control type. The actual solver  supported in \emph{OpenSoT} is based on (\ref{eq:sot_full}) and is currently supporting  only velocity based task and Constraints.  Therefore \emph{velocity control} is the available control type in the current state of implementation while other type of solvers which support different control modalities are due to be integrated soon.
@@ -714,7 +651,7 @@ The first one is required anytime the robot is near the kinematics singularities
 The latter is fundamental to prevent that a task potentially damages the robot. 
 
 Considering these requirements, we developed the standard IK solver provided with \textbf{OpenSoT} based on a sequence of QP optimizations with the possibility to specify \emph{hard} and \emph{soft} priorities between tasks as well as linear constraints and bounds. 
-The solver is based on the framework (\ref{eq:sot_full}):
+The solver is based on the framework (\ref{eq:sot_full}):\todo{review for clearer explanation of damping}
 \begin{equation} 
 \label{optimization_problem2}
 \begin{array}{c}
@@ -728,30 +665,33 @@ s.t. \ \mathbf{c}_\text{l,i} \leq \mathbf{A}_i\dot{\mathbf{q}}_i \leq \mathbf{b}
 \end{array}
 \end{equation}
 where $\mathbf{J}_i$ and $\mathbf{v}_{d,i}$ are respectively the Jacobian and the desired velocity reference for i-th task, $\lambda$ is a weight for the damping correction, $\mathbf{A}_i$, $\mathbf{c}_\text{l,i}$ and $\mathbf{c}_\text{u,i}$ are constraints present only in the i-th task, $\mathbf{A}$, $\mathbf{b}_\text{l}$ and $\mathbf{b}_\text{u}$ are global constrains as well as $\mathbf{u}_\text{l}$ and $\mathbf{u}_\text{u}$ are bounds that are present in all the tasks. 
-The final set of constraints represent the optimality conditions that comes from the high priority level tasks in the stack. In our IK solver all the optimality conditions are set automatically given the IK Problem while the other constraints are set by the user.
-As shown in \cite{nakamura1990-tp} the second term in the cost function guarantees the robustness near kinematics singularities (see Appendix \ref{app:singularity-robustness}, the $\lambda$ gain can be chosen according to different criteria). Bounds and constraints are mandatory in order to be robust to joint limits and joint velocity/acceleration/torque limits.
-Conceptually, the IK solver is divided in two main parts: the \emph{front-end} and the \emph{back-end} (this terminology is often used in SLAM optimization).
+The final set of constraints represent the optimality conditions that comes from the higher priority level tasks in the stack. In our IK solver all the optimality conditions are set automatically given the IK Problem while the other constraints are set by the user.
+As shown in \cite{nakamura1990-tp} the second term in the cost function guarantees the robustness near kinematics singularities, the $\lambda$ gain can be chosen according to different criteria). Bounds and constraints are mandatory in order to be robust to joint limits and joint velocity/acceleration/torque limits.
+Conceptually, the IK solver is divided in two main parts: the \emph{front-end} and the \emph{back-end}.
 The \emph{front-end} takes an IK Problem and prepare all the QP Problems that needs to be solved considering priorities, local and global constraints and bounds. The \emph{back-end} consists of the underneath QP Solver that solves the single QP Problem. Tasks, constraints and bounds are defined as \emph{pointers} and updated outside the solver at every step.
 
 \subsubsection{Back-End}
 As mentioned before, the \emph{back-end} is based on a popular QP solver library called \emph{qpOASES} \cite{ferreau2013} which implements an active-set approach to handle inequality constraints. The library provides also a \emph{warm-start} and a \emph{hot-start} approach to solve the QP Problem. Basically, in the \emph{warm-start}, an initial guess from the previous solution and previous active set is used. This permits to speed up the computation with respect to a classical solution (that we call \emph{initialization} because it has to be performed at least in the beginning).
-In the \emph{hot-start} also the previous decomposition of the matrix for the KKT conditions is used to speed up even more the process of solution. 
-\begin{figure}[htb] 
-\vspace{2 mm}
-\centering 
-\includegraphics[width=0.5\textwidth]{images/wholebody/QPOasesProblem_solve2.png} 
-\caption{In the \emph{back-end}, if the \emph{hot-start} fails, then \emph{warm-start} is attempted. If also \emph{warm-start} fails than a new \emph{initialization} of the problem is performed} 
-\label{qpOasesProblemSolve}
-\end{figure}
+In the \emph{hot-start} also the previous decomposition of the matrix for the KKT conditions is used to speed up computation. 
+
+% REMOVED 05/02/16
+% \begin{figure}[htb] 
+% \vspace{2 mm}
+% \centering 
+% \includegraphics[width=0.5\textwidth]{images/wholebody/QPOasesProblem_solve2.png} 
+% \caption{In the \emph{back-end}, if the \emph{hot-start} fails, then \emph{warm-start} is attempted. If also \emph{warm-start} fails than a new \emph{initialization} of the problem is performed} 
+% \label{qpOasesProblemSolve}
+% \end{figure}
 
 When a QP has to be solved, the \emph{back-end} first tries to solve the problem using the \emph{hot-start}, if an error occurs then the \emph{warm-start} is used. If also the \emph{warm-start} fails a new \emph{initialization} of the QP Problem is performed (Figure \ref{qpOasesProblemSolve}). If also the \emph{initialization} fails then the solver will not generate a solution and notify the user by returning a \emph{false} value (Figure \ref{qpOasesProblemInit}).
 
-\begin{figure}[htb] 
-\centering 
-\includegraphics[width=0.3\textwidth]{images/wholebody/QPOasesProblem_init2.png} 
-\caption{The first solution to the IK Problem is given by the \emph{initialization}. After that, \emph{hot-start} and \emph{warm-start} are always attempted to speed-up the computation} 
-\label{qpOasesProblemInit}
-\end{figure}
+% REMOVED 05/02/16
+% \begin{figure}[htb] 
+% \centering 
+% \includegraphics[width=0.3\textwidth]{images/wholebody/QPOasesProblem_init2.png} 
+% \caption{The first solution to the IK Problem is given by the \emph{initialization}. After that, \emph{hot-start} and \emph{warm-start} are always attempted to speed-up the computation} 
+% \label{qpOasesProblemInit}
+% \end{figure}
 
 
 \subsubsection{Front-End}
@@ -765,192 +705,30 @@ where the second term in (\ref{optimization_problem2}) is automatically added by
 \mathbf{J}_{j}\dot{\mathbf{q}}_{j} = \mathbf{J}_{j}\dot{\mathbf{q}}_i
 \label{optimality_constraints}
 \end{equation}
-where $j = 0, 1, ..., i-1$ and $\dot{\mathbf{q}}_{j}$ are the previous computed solutions. The optimality constraints are added together with the other constraints automatically by the \emph{front-end}. Equalities and inequalities constraints are treated together. When the preparation is finished, the solve method of the \emph{back-end} is called (if the QP Problem has been initialized before, otherwise the initialization method is called). The whole state machine that takes care to do this at every step of the IK is shown in Figure \ref{qpOasesSoT}. 
+where $j = 0, 1, ..., i-1$ and $\dot{\mathbf{q}}_{j}$ are the previous computed solutions. The optimality constraints are added together with the other constraints automatically by the \emph{front-end}. Equalities and inequalities constraints are treated together. When the preparation is finished, the solve method of the \emph{back-end} is called (if the QP Problem has been initialized before, otherwise the initialization method is called).
 
-\begin{figure}[htb!] 
-\centering 
-\includegraphics[width=0.6\textwidth]{images/wholebody/QPOases_sot_solve2.png} 
-\caption{The \emph{front-end} is in charge to prepare the IK Problem for the \emph{back-end} writing the QP problems considering priorities, bounds and global/local constraints} 
-\label{qpOasesSoT}
-\end{figure}
+% REMOVED 05/02/16
+% \begin{figure}[htb!] 
+% \centering 
+% \includegraphics[width=0.6\textwidth]{images/wholebody/QPOases_sot_solve2.png} 
+% \caption{The \emph{front-end} is in charge to prepare the IK Problem for the \emph{back-end} writing the QP problems considering priorities, bounds and global/local constraints} 
+% \label{qpOasesSoT}
+% \end{figure}
 
 Through the \emph{front-end} interface, the user can set parameters regarding each problem in the \emph{back-end}. It is possible to set different options to configure \emph{qpOASES} to favor speed instead of reliability and vice versa. The \emph{front-end} takes care to set default options for \emph{qpOASES}.  
 
 \subsubsection{Considerations on the IK Problem}
 It is worth noticing that not only the IK solver but also the IK problem will affect the resulting joint trajectory given by the high-level task solution.
-When writing the IK problem, the user may specify different gains and parameters as well as constraints and stacks that will influence in some way the result. From our experience, we used different ways to affect the solution: tuning the $\lambda$ and setting gains for the Cartesian tasks in the cost function of (\ref{optimization_problem2}), add constraints and bounds (however it may result in an unfeasible problem), add a joint space task at the lowest priority level. In the latter case, is well known that when the joint space task is the minimization of the joint velocity, the resulting optimization is equivalent to a weighted pseudo inverse \cite{Siciliano:2008:RMP:1524151} (see Appendix \ref{app:weighted-pseudo-inverse}).
+When writing the IK problem, the user may specify different gains and parameters as well as constraints and stacks that will influence in some way the result. From our experience, we used different ways to affect the solution: tuning the $\lambda$ and setting gains for the Cartesian tasks in the cost function of (\ref{optimization_problem2}), add constraints and bounds (however it may result in an unfeasible problem), add a joint space task at the lowest priority level. In the latter case, is well known that when the joint space task is the minimization of the joint velocity, the resulting optimization is equivalent to a weighted pseudo inverse \cite{Siciliano:2008:RMP:1524151}.
 
-
-
-\subsubsection{Conclusions}
-\label{sec:conclusions}
-This work introduced a novel whole-body control library called \textbf{OpenSoT}. Such framework allows to control a robot by solving a hierarchy of tasks with linear constraints. 
-%The framework provides a library of already implemented tasks, constraints, bounds and solvers as well as an easy way to implement new ones by providing common interfaces.
-Theoretical details about tasks, constraints and the IK solver available in the framework has been shown. In particular, the proposed IK solver satisfy the requirements in terms of robustness: singularity robustness, constraints/bounds specification and it permits to set priorities between tasks. The IK solver is composed by a \emph{front-end}, that prepares the IK Problem for the QP solver which constitutes the \emph{back-end}. As QP solver, a state-of-art library called qpOASES has been used.
-%The \textbf{OpenSoT} framework contains also a set of tools to use the library with different robotic frameworks and high level programming languages, as well as facilitate the evaluation of the resulting computed trajectories.
-%The performances of the library have been evaluated with a set of experiments and tests in multiple robotic platforms. \textbf{OpenSoT} was used by the WALK-MAN Team during the DRC Finals to perform all the manipulation tasks showing the possibility to use the framework in a real scenario.
-The set of tasks and constraints considered permits to perform high-level tasks without damaging the robot. Experiments presented in this section demonstrated the usefulness and the capabilities of the library.
-
-We also presented a new constraint for the QP based IK, for fixed/floating base robots, that takes in consideration the robot dynamics to filter dynamically unfeasible motions. We presented the theoretical formulation and we showed results in simulation using our humanoid robot WALK-MAN considering a whole body task involving also other constraints such as joint limits, joint velocity limits, the Center of Mass of the robot has to lie inside the support polygon and self collision avoidance. We show that the robot dynamics constraint can make the task dynamically feasible and it is able to keep the torques at the torso on the given boundary limits. We think this is fundamental when working on real hardware as well as joint limits and joint velocity limits. This constraint is fundamental when Cartesian trajectories references are \emph{aggressive}, for instance when considering motion capture data. 
-
-Future work will entail adding more tasks and constraints at the velocity level, add acceleration and torque tasks and constraints and explore different solvers.
-
-This work is the second and last part in a series of papers introducing a novel whole-body control library called \textbf{OpenSoT}. Such framework allows to control a robot by solving a hierarchy of tasks with linear constraints. 
-The framework provides a library of already implemented tasks, constraints, bounds and solvers as well as an easy way to implement new ones by providing common interfaces.
-
-We addressed the theoretical foundations of the framework, and presented a large set of experiments with the intent of demonstrating the robustness of the library, its successful use in real-case scenarios, and the richness of features.
-
-We showed how the \textbf{OpenSoT} framework contains a set of tools allowing the use of the library in conjunction with different robotic frameworks and high level programming languages, as well as facilitate the behcmarking of the resulting computed trajectories.
-
-The performances of the library have been evaluated with a set of experiments and tests in multiple robotic platforms. \textbf{OpenSoT} was used by the WALK-MAN Team during the DRC Finals to perform all the manipulation tasks showing the possibility to use the framework in a real scenario.
-
-Even if \textbf{OpenSoT} is a young project, it showed its ease of use by a large groups of first-time users with varying backgrounds and education levels that programmed tasks for the DRC Finals in a very short amount of time. Its flexible API allowed researchers\cite{Fang2015-cr} to easily extend it and successfully implement research code on top of a robust infrastructure.
-
-The \textbf{OpenSoT} library is documented on the website \href{http://opensot.github.io} and is available for download together with \emph{iDynUtils} and the \emph{capsule generator} on github, either as separate packages \cite{Mingo2015-oo,Ferrati2015-so,Rocchi_undated-my} or as part of our super-build system which takes care of installing the whole stack together with the necessary software dependencies \cite{Mingo_undated-pj}.
-
-\subsubsection{Appendices}
-
-\paragraph{Local Constraints}
-\label{app:local-constr}
-
-Let consider two tasks with jacobians $\mathbf{J}_1$ and $\mathbf{J}_2$, with the first one at highest priority. Let consider also a constraint on the first task of the type:
-\begin{equation}
-\mathbf{A}\mathbf{\dot{q}} \leq \mathbf{b}
-\end{equation}
-with:
-\begin{equation}
-rank\left ( \begin{bmatrix}
-\mathbf{J}_1\\ 
-\mathbf{A}
-\end{bmatrix} \right ) = rank \left( \mathbf{J}_1 \right)
-\end{equation}
-This means that $\mathbf{A}$ can be written as a linear combination of rows of $\mathbf{J}_1$:
-\begin{equation}
-\label{app:linear-comb}
-\mathbf{A} = \mathbf{BJ}_1
-\end{equation}
-The first qp that is solved is:
-\begin{equation} 
-\label{app:qp1}
-\begin{array}{c}
-\mathbf{\dot{q}}* = \underset{\mathbf{\dot{q}}}{\operatorname{argmin}} \ \Arrowvert \mathbf{J}_1 \mathbf{\dot{q}}-\mathbf{v}_{d,1} \Arrowvert\\
-s.t. \ \mathbf{A}\mathbf{\dot{q}} \leq \mathbf{b}
-\end{array}
-\end{equation}
-
-where $\mathbf{\dot{q}}*$ satisfy the constraint and minimize the cost function. 
-The second qp that is solved is:
-\begin{equation} 
-\label{app:qp2}
-\begin{array}{c}
-\underset{\mathbf{\dot{q}}}{\operatorname{min}} \ \Arrowvert \mathbf{J}_2 \mathbf{\dot{q}}-\mathbf{v}_{d,2} \Arrowvert\\
-s.t. \ \mathbf{J}_1\mathbf{\dot{q}} = \mathbf{J}_1\mathbf{\dot{q}}*
-\end{array}
-\end{equation}
-where the equality constraint guarantee the optimality of the previous solution. If we multiply the constraint for the $\mathbf{B}$ matrix considering (\ref{app:linear-comb}) and the constraint satisfied in (\ref{app:qp1}):
-\begin{equation}
-\mathbf{B}\mathbf{J}_1\mathbf{\dot{q}} = \mathbf{B}\mathbf{J}_1\mathbf{\dot{q}}* \leq \mathbf{b}
-\end{equation}
-therefore:
-\begin{equation}
-\mathbf{B}\mathbf{J}_1\mathbf{\dot{q}} = \mathbf{A}\mathbf{\dot{q}}\leq \mathbf{b}
-\end{equation}
-so the constraint remains satisfied also in the second qp \emph{qed}.
-
-\paragraph{Singularity Robustness}
-\label{app:singularity-robustness}
-
-Let consider the following minimization problem:
-\begin{equation} 
-\label{SRI_problem}
-\begin{array}{c}
-\underset{\mathbf{\dot{q}}}{\operatorname{argmin}} \ \Arrowvert \mathbf{J}_i \mathbf{\dot{q}}_i-\mathbf{v}_{d,i} \Arrowvert + \lambda \Arrowvert \mathbf{\dot{q}}_i \Arrowvert
-\end{array}
-\end{equation}
-the Lagrangian is computed:
-\begin{equation}
-\label{SRI_Lagrangian}
-l(\mathbf{\dot{q}}) = \mathbf{\dot{q}}'\mathbf{J}'\mathbf{J}\mathbf{\dot{q}}-2(\mathbf{J}\mathbf{\dot{q}})'\mathbf{v}-\mathbf{v}'\mathbf{v}+\lambda\mathbf{\dot{q}}'\mathbf{\dot{q}}
-\end{equation}
-and its derivative:
-\begin{equation}
-\label{derive_SRI_Lagrangian}
-\frac{\partial l(\mathbf{\dot{q}})}{\partial\mathbf{\dot{q}}}=\mathbf{J}'\mathbf{J}\mathbf{\dot{q}}-\mathbf{J}'\mathbf{v}+\lambda\mathbf{\dot{q}}=0
-\end{equation}
-solving for $\dot{\mathbf{q}}$ leads to:
-\begin{equation}
-\label{SRI}
-\mathbf{\dot{q}}=(\mathbf{J}'\mathbf{J}+\lambda\mathbf{I})^{-1}\mathbf{J}'\mathbf{v}
-\end{equation}
-notice that $(\mathbf{J}'\mathbf{J}+\lambda\mathbf{I})^{-1}\mathbf{J}' = \mathbf{J}'(\mathbf{J}\mathbf{J}'+\lambda\mathbf{I})^{-1}$ and it is called \emph{Singularity Robust Inverse} (SRI) of matrix $\mathbf{J}$ \cite{nakamura1990-tp}.
-It is worth to notice that applying the SRI to the Singular Value Decomposition of a matrix leads to the Damped Singular Value Decomposition of that matrix, in fact, given a matrix $\mathbf{A}$ its SVD is:
-\begin{equation}
-\mathbf{A} = U\Sigma V'
-\end{equation}
-where $U$ is a unitary matrix, $\Sigma$ is the matrix of the ordered singular values $\sigma_1 \geq \sigma_2 \geq ... \geq 0$ and $V$ is a unitary matrix. The pseudo inverse of $\mathbf{A}$ can be written as:
-\begin{equation}
-\mathbf{A}^{\dagger} = V\Sigma^{\dagger}U'
-\end{equation}
-where the general non-zero element of $\Sigma^{\dagger}$ is $1/\sigma_i$ that became unstable when $\sigma_i$ goes to 0. Applying the SRI to $\Sigma$ leads to:
-\begin{equation}
-\Sigma^{\dagger} = (\Sigma'\Sigma+\lambda\mathbf{I})^{-1}\Sigma'
-\end{equation}
-where in this case the non-zero elements have the form $\frac{\sigma_i}{\sigma_i^2+\lambda}$ that is well known \cite{maciejewski1989-jp} SR form for the pseudo inverse.
-
-\paragraph{Weighted Pseudo-Inverse}
-\label{app:weighted-pseudo-inverse}
-
-When the last task in the stack is the minimization of the joint velocity, considering the optimality conditions from the previous tasks, the resulting problem is equivalent to the solution given by a weighted pseudo inverse. 
-The following optimization problem is considered:
-\begin{equation} 
-\label{weighted_pseudoinverse}
-\begin{array}{c}
-\underset{\dot{\mathbf{q}}}{\operatorname{argmin}} \ \Arrowvert \dot{\mathbf{q}_l} \Arrowvert_W \\
-s.t. \ \mathbf{v}^* = \mathbf{J}_{l-1}\dot{\mathbf{q}}_l\\
-\end{array}
-\end{equation}
-where $l$ is for \emph{last} and $\mathbf{v}^*$ is the result of the previous optimizations (the computed Cartesian velocities are \emph{filtered} at the last stack). The Lagrangian is:
-\begin{equation}
-l(\dot{\mathbf{q}}, \mu) = \dot{\mathbf{q}}_l^TW\dot{\mathbf{q}}_l + \mu^T(\mathbf{J}_{l-1}\dot{\mathbf{q}}_l - \mathbf{v}^*)
-\end{equation}
-where $\mu$ is a vector of \emph{Lagrange Multipliers}. The solution is found as:
-\begin{equation}
-\label{derivative_lagrangian}
-\frac{\partial l(\dot{\mathbf{q}}, \mu)}{\partial\dot{\mathbf{q}}} = 2W\dot{\mathbf{q}}_l+\mathbf{J}_{l-1}^T\mu = 0
-\end{equation}
-together with:
-\begin{equation}
-\label{constraint}
-\mathbf{J}_{l-1}\dot{\mathbf{q}}_l-\mathbf{v}^* = 0
-\end{equation}
-From (\ref{derivative_lagrangian}) we get:
-\begin{equation}
-\label{step1}
-\dot{\mathbf{q}}_l = -\frac{1}{2}W^{-1}\mathbf{J}_{l-1}^T\mu 
-\end{equation}
-where $W$ is always invertible since it is diagonal and positive definite. Substituting (\ref{step1}) in (\ref{constraint}) is possible to compute $\mu$:
-\begin{equation}
-\label{lambda_step1}
-\frac{1}{2}\mathbf{J}_{l-1}W^{-1}\mathbf{J}_{l-1}^T\mu + \mathbf{v}^* = 0
-\end{equation}
-therefore:
-\begin{equation}
-\label{lambda_step2}
-\mu = -2(\mathbf{J}_{l-1}W^{-1}\mathbf{J}_{l-1}^T)^{-1}\mathbf{v}^*
-\end{equation}
-that substituted in (\ref{step1}) gives the solution:
-\begin{equation}
-\label{solution}
-\dot{\mathbf{q}}_l = W^{-1}\mathbf{J}_{l-1}^T(\mathbf{J}_{l-1}W^{-1}\mathbf{J}_{l-1}^T)^{-1}\mathbf{v}^*
-\end{equation}
-that corresponds to the weighted pseudo inverse solution.
 
 \subsection{Experimental Validation}
 \label{sec:examples}
-In this chapter we consider a large set of examples and tests to evaluate the performances of the \textbf{OpenSoT} library. Furthermore, from the author knowledge, no one else before demonstrate a such large set of tests showing the interaction between different tasks and constraints together.
+In this section we consider a large set of examples and tests to evaluate the performances of the \textbf{OpenSoT} library.
 
 \subsubsection{Soft Interaction and Tele-operation}
-For these experiments we have used the \emph{Compliant Inverse Kinematics} scheme shown in Figure \ref{soft_interaction_block_diagram}.
+\todo{insert paragraph about UI.. or it could go in architecture}\cite{Settimi2014-uo}
+For these experiments the \emph{Compliant Inverse Kinematics} scheme has been used as shown in Figure \ref{soft_interaction_block_diagram}.
 \begin{figure*}[!h]
 \vspace{2 mm}
 \centering
@@ -1025,20 +803,20 @@ This particular IK problem and low-level controller have been also used to perfo
 \end{comment}
 
 \begin{figure}
-\centering
-\begin{minipage}[b]{7.7cm}
+% \centering
+% \begin{minipage}[b]{7.7cm}
         \centering
         \includegraphics[width=1.0\textwidth]{images/soft_interaction/sot_bb.png}
         \caption{COMAN erasing a whiteboard, interaction is handled by the joint impedance control}
         \label{COMAN_bb}
-\end{minipage}
- \ \hspace{3mm} \
-\begin{minipage}[b]{7.7cm}
-        \centering
-        \includegraphics[width=1.0\textwidth]{images/soft_interaction/handover.eps}
-        \caption{COMAN performing an handover task}
-        \label{COMAN_handover}
-\end{minipage}
+% \end{minipage}
+%  \ \hspace{3mm} \
+% \begin{minipage}[b]{7.7cm}
+%         \centering
+%         \includegraphics[width=1.0\textwidth]{images/soft_interaction/handover.eps}
+%         \caption{COMAN performing an handover task}
+%         \label{COMAN_handover}
+% \end{minipage}
 \end{figure}
 
 \begin{comment}
@@ -1067,51 +845,52 @@ This particular IK problem and low-level controller have been also used to perfo
 \end{minipage}
 \end{figure}
 
-\subsubsection{Locomotion}
-In this experiment, two IK problems are compared to perform a walking task while moving an arm using the simulated model of WALK-MAN (the kinematics of WALK-MAN consists in 6 DoFs legs, 7 DoFs arms, 3 DoFs torso and 2 DoFs neck). The block diagram is shown in Figure \ref{walk_block_diagram}.
-\begin{figure*}[!h]
-\vspace{2 mm}
-\centering
-\includegraphics[width=0.8\textwidth]{images/walking/walking.eps}
-\caption{Block diagram for the walking task with WALK-MAN}
-\label{walk_block_diagram}
-\end{figure*}
-It is worth to notice that no additional stabilizers are used after the \emph{Preview Controller} \cite{Kajita:03}.
-From a foot-step planner, a set of step is computed. These steps are the input for the \emph{Preview Controller} that computes Cartesian trajectories for the CoM considering a stable trajectory for the Zero Moment Point (ZMP) and an Inverted Pendulum Model as well as Cartesian trajectories for the feet. Most of the time, researchers suppose the upper body does not move at all while walking and they control the pelvis instead of the CoM. Indeed, the \emph{Preview Controller} assumes the whole robot represented as its CoM and a leg on the ground. In this experiment the right arm is moved while walking and this movement is not taken into account when generating the trajectories from the \emph{Preview Controller}. To have a stable walking the CoM control is needed since it will compensate for the CoM displacement generated by the arm movements. Controlling just the pelvis generate an unstable walking.
-The IK Problems considered are:
-\begin{equation}
-\begin{pmatrix}
-\left(T_{\substack{\text{Right}\\\text{Foot}}} + T_{\substack{\text{Left}\\\text{Foot}}} + T_\text{Pelvis}\right)\setminus\\
-\\
-T_{\substack{\text{Right}\\\text{Wrist}}}\setminus\\
-\\
-T_{\substack{\text{Joint}\\\text{Posture}}}
-\end{pmatrix}
-<< \left(B_{\substack{\text{Joint}\\\text{Limits}}} + B_{\substack{\text{Joint Velocity}\\\text{Limits}}}\right)
-\end{equation}
-and
-\begin{equation}
-\begin{pmatrix}
-\left(T_{\substack{\text{Right}\\\text{Foot}}} + T_{\substack{\text{Left}\\\text{Foot}}} + T_\text{CoM}\right)\setminus\\
-\\
-T_{\substack{\text{Right}\\\text{Wrist}}}\setminus\\
-\\
-T_{\substack{\text{Joint}\\\text{Posture}}}
-\end{pmatrix}
-<< \left(B_{\substack{\text{Joint}\\\text{Limits}}} + B_{\substack{\text{Joint Velocity}\\\text{Limits}}}\right)
-\end{equation}
-In Figure \ref{walk_snapshot}, the results of the two controllers is shown. On the left, the pelvis is controlled and the continuous movement of the arm makes the robot fall. On the right the CoM is controlled and the robot can use the whole body to compensate for the arm movement. 
-\begin{figure*}[!h]
-\vspace{2 mm}
-\centering
-\includegraphics[width=\textwidth]{images/walking/walking_snapshot.eps}
-\caption{Walking performances of the two IK Problems}
-\label{walk_snapshot}
-\end{figure*}
+% REMOVED 05/02/16
+% \subsubsection{Locomotion}
+% In this experiment, two IK problems are compared to perform a walking task while moving an arm using the simulated model of WALK-MAN (the kinematics of WALK-MAN consists in 6 DoFs legs, 7 DoFs arms, 3 DoFs torso and 2 DoFs neck). The block diagram is shown in Figure \ref{walk_block_diagram}.
+% \begin{figure*}[!h]
+% \vspace{2 mm}
+% \centering
+% \includegraphics[width=0.8\textwidth]{images/walking/walking.eps}
+% \caption{Block diagram for the walking task with WALK-MAN}
+% \label{walk_block_diagram}
+% \end{figure*}
+% It is worth to notice that no additional stabilizers are used after the \emph{Preview Controller} \cite{Kajita:03}.
+% From a foot-step planner, a set of step is computed. These steps are the input for the \emph{Preview Controller} that computes Cartesian trajectories for the CoM considering a stable trajectory for the Zero Moment Point (ZMP) and an Inverted Pendulum Model as well as Cartesian trajectories for the feet. Most of the time, researchers suppose the upper body does not move at all while walking and they control the pelvis instead of the CoM. Indeed, the \emph{Preview Controller} assumes the whole robot represented as its CoM and a leg on the ground. In this experiment the right arm is moved while walking and this movement is not taken into account when generating the trajectories from the \emph{Preview Controller}. To have a stable walking the CoM control is needed since it will compensate for the CoM displacement generated by the arm movements. Controlling just the pelvis generate an unstable walking.
+% The IK Problems considered are:
+% \begin{equation}
+% \begin{pmatrix}
+% \left(T_{\substack{\text{Right}\\\text{Foot}}} + T_{\substack{\text{Left}\\\text{Foot}}} + T_\text{Pelvis}\right)\setminus\\
+% \\
+% T_{\substack{\text{Right}\\\text{Wrist}}}\setminus\\
+% \\
+% T_{\substack{\text{Joint}\\\text{Posture}}}
+% \end{pmatrix}
+% << \left(B_{\substack{\text{Joint}\\\text{Limits}}} + B_{\substack{\text{Joint Velocity}\\\text{Limits}}}\right)
+% \end{equation}
+% and
+% \begin{equation}
+% \begin{pmatrix}
+% \left(T_{\substack{\text{Right}\\\text{Foot}}} + T_{\substack{\text{Left}\\\text{Foot}}} + T_\text{CoM}\right)\setminus\\
+% \\
+% T_{\substack{\text{Right}\\\text{Wrist}}}\setminus\\
+% \\
+% T_{\substack{\text{Joint}\\\text{Posture}}}
+% \end{pmatrix}
+% << \left(B_{\substack{\text{Joint}\\\text{Limits}}} + B_{\substack{\text{Joint Velocity}\\\text{Limits}}}\right)
+% \end{equation}
+% In Figure \ref{walk_snapshot}, the results of the two controllers is shown. On the left, the pelvis is controlled and the continuous movement of the arm makes the robot fall. On the right the CoM is controlled and the robot can use the whole body to compensate for the arm movement. 
+% \begin{figure*}[!h]
+% \vspace{2 mm}
+% \centering
+% \includegraphics[width=\textwidth]{images/walking/walking_snapshot.eps}
+% \caption{Walking performances of the two IK Problems}
+% \label{walk_snapshot}
+% \end{figure*}
 
 
 \subsubsection{Examples}
-In this part we focus on some particular tasks and constraints showing their behaviour and performances.
+In this part we focus on a set of tasks and constraints that have been used in practice in a series of stacks of practical interest. The experiments show their behaviour and performances.
 
 \paragraph{Dynamic Filter}
 As explained before, the idea behind the \emph{Dynamic Filter} is to use the dynamics of the robot to filter non-feasible motions. In this experiment the effect of the dynamics as a constraint, at the velocity level, is shown. The robot has to perform a squat motion that requires a certain amount of torque on the legs. The same motion is then performed with the constraints considering that the available torque at the legs is $60\%$  less ($20 \ [Nm]$ instead of $50 \ [Nm]$). 
@@ -1220,43 +999,44 @@ In Fig. \ref{gazebo} it can be observed the final motion performed by the robot 
 
 Cartesian errors are shown in Fig. \ref{cartesian_error}. Despite the Cartesian errors are small when not using the robot dynamics constraint, the robot falls with high joint torques trying to keep the Cartesian error small. With the constraint activated, the Cartesian errors are larger but the robot does not fall and the torques on the joints are inside the bounds. 
 
-\paragraph{Interaction}
-In this example the robot has to reach the wall with the right arm and regulate the interaction wrench. The desired wrench at the contact is $\mathbf{w}_\text{d} = \left[25.0, \ 0.0, \ 0.0, \ \mid \ 0.0, \ 0.0, \ 0.0 \right] \quad \left[N \ \mid \ Nm \right]$. The compliance matrix $C$ is:
-\begin{equation}
-C = \begin{bmatrix}
-10^{-5} & 0 & 0 & 0 & 0 & 0\\ 
-0 & 10^{-5} & 0 & 0 & 0 & 0\\ 
-0 & 0 & 10^{-5} & 0 & 0 & 0\\ 
-0 & 0 & 0 & 10^{-4} & 0 & 0\\ 
-0 & 0 & 0 & 0 & 10^{-4} & 0\\ 
-0 & 0 & 0 & 0 & 0 & 10^{-4}
-\end{bmatrix}
-\end{equation}
-\begin{figure*}[!h]
-\vspace{2 mm}
-\centering
-\includegraphics[width=0.7\textwidth]{images/interaction/wrench_tracking.eps}
-\caption{Wrench tracking with the interaction task}
-\label{wrench_tracking}
-\end{figure*}
-
-The IK problem is composed by:
-\begin{equation}
-\begin{pmatrix}
-T_{\substack{\text{Interaction}\\\text{Right Arm}}}\setminus\\
-\\
-T_{\substack{\text{Joint}\\\text{Posture}}}
-\end{pmatrix}
-<< \left(B_{\substack{\text{Joint}\\\text{Limits}}} + B_{\substack{\text{Joint Velocity}\\\text{Limits}}}\right)
-\end{equation}
-Figure \ref{wrench_tracking} shows the tracking of the desired wrench while Figure \ref{interaction_COMAN} shows the motion performed by COMAN in simulation.
-\begin{figure*}[!h]
-\vspace{2 mm}
-\centering
-\includegraphics[width=0.7\textwidth]{images/interaction/interaction.eps}
-\caption{COMAN performing the interaction task with the right arm, blue dots shows the contact points}
-\label{interaction_COMAN}
-\end{figure*}
+% REMOVED 05/02/16
+% \paragraph{Interaction}
+% In this example the robot has to reach the wall with the right arm and regulate the interaction wrench. The desired wrench at the contact is $\mathbf{w}_\text{d} = \left[25.0, \ 0.0, \ 0.0, \ \mid \ 0.0, \ 0.0, \ 0.0 \right] \quad \left[N \ \mid \ Nm \right]$. The compliance matrix $C$ is:
+% \begin{equation}
+% C = \begin{bmatrix}
+% 10^{-5} & 0 & 0 & 0 & 0 & 0\\ 
+% 0 & 10^{-5} & 0 & 0 & 0 & 0\\ 
+% 0 & 0 & 10^{-5} & 0 & 0 & 0\\ 
+% 0 & 0 & 0 & 10^{-4} & 0 & 0\\ 
+% 0 & 0 & 0 & 0 & 10^{-4} & 0\\ 
+% 0 & 0 & 0 & 0 & 0 & 10^{-4}
+% \end{bmatrix}
+% \end{equation}
+% \begin{figure*}[!h]
+% \vspace{2 mm}
+% \centering
+% \includegraphics[width=0.7\textwidth]{images/interaction/wrench_tracking.eps}
+% \caption{Wrench tracking with the interaction task}
+% \label{wrench_tracking}
+% \end{figure*}
+% 
+% The IK problem is composed by:
+% \begin{equation}
+% \begin{pmatrix}
+% T_{\substack{\text{Interaction}\\\text{Right Arm}}}\setminus\\
+% \\
+% T_{\substack{\text{Joint}\\\text{Posture}}}
+% \end{pmatrix}
+% << \left(B_{\substack{\text{Joint}\\\text{Limits}}} + B_{\substack{\text{Joint Velocity}\\\text{Limits}}}\right)
+% \end{equation}
+% Figure \ref{wrench_tracking} shows the tracking of the desired wrench while Figure \ref{interaction_COMAN} shows the motion performed by COMAN in simulation.
+% \begin{figure*}[!h]
+% \vspace{2 mm}
+% \centering
+% \includegraphics[width=0.7\textwidth]{images/interaction/interaction.eps}
+% \caption{COMAN performing the interaction task with the right arm, blue dots shows the contact points}
+% \label{interaction_COMAN}
+% \end{figure*}
 
 \paragraph{Resources Allocation: Velocity Allocation}
 \label{velocity_allocation}
@@ -1461,3 +1241,29 @@ T_{\substack{\text{Joint}\\\text{Postural}}}
 and velocity allocation strategy.
 
 The IK solver was running in the on-board computer of the WALK-MAN robot and the trajectories were sent to the joint servos using (\ref{open_loop}). Joints were controlled using position control.  WALK-MAN always accomplished the \emph{driving} and \emph{door opening} tasks (Figure \ref{walkman_drc}) in both the runs of the DRC Finals\footnote{http://www.theroboticschallenge.org/finalist/walk-man}.
+
+\subsubsection{Conclusions}
+\label{sec:conclusions}
+This work introduced a novel whole-body control library called \textbf{OpenSoT}. Such framework allows to control a robot by solving a hierarchy of tasks with linear constraints. 
+%The framework provides a library of already implemented tasks, constraints, bounds and solvers as well as an easy way to implement new ones by providing common interfaces.
+Theoretical details about tasks, constraints and the IK solver available in the framework has been shown. In particular, the proposed IK solver satisfy the requirements in terms of robustness: singularity robustness, constraints/bounds specification and it permits to set priorities between tasks. The IK solver is composed by a \emph{front-end}, that prepares the IK Problem for the QP solver which constitutes the \emph{back-end}. As QP solver, a state-of-art library called qpOASES has been used.
+%The \textbf{OpenSoT} framework contains also a set of tools to use the library with different robotic frameworks and high level programming languages, as well as facilitate the evaluation of the resulting computed trajectories.
+%The performances of the library have been evaluated with a set of experiments and tests in multiple robotic platforms. \textbf{OpenSoT} was used by the WALK-MAN Team during the DRC Finals to perform all the manipulation tasks showing the possibility to use the framework in a real scenario.
+The set of tasks and constraints considered permits to perform high-level tasks without damaging the robot. Experiments presented in this section demonstrated the usefulness and the capabilities of the library.
+
+We also presented a new constraint for the QP based IK, for fixed/floating base robots, that takes in consideration the robot dynamics to filter dynamically unfeasible motions. We presented the theoretical formulation and we showed results in simulation using our humanoid robot WALK-MAN considering a whole body task involving also other constraints such as joint limits, joint velocity limits, the Center of Mass of the robot has to lie inside the support polygon and self collision avoidance. We show that the robot dynamics constraint can make the task dynamically feasible and it is able to keep the torques at the torso on the given boundary limits. We think this is fundamental when working on real hardware as well as joint limits and joint velocity limits. This constraint is fundamental when Cartesian trajectories references are \emph{aggressive}, for instance when considering motion capture data. 
+
+Future work will entail adding more tasks and constraints at the velocity level, add acceleration and torque tasks and constraints and explore different solvers.
+
+This work is the second and last part in a series of papers introducing a novel whole-body control library called \textbf{OpenSoT}. Such framework allows to control a robot by solving a hierarchy of tasks with linear constraints. 
+The framework provides a library of already implemented tasks, constraints, bounds and solvers as well as an easy way to implement new ones by providing common interfaces.
+
+We addressed the theoretical foundations of the framework, and presented a large set of experiments with the intent of demonstrating the robustness of the library, its successful use in real-case scenarios, and the richness of features.
+
+We showed how the \textbf{OpenSoT} framework contains a set of tools allowing the use of the library in conjunction with different robotic frameworks and high level programming languages, as well as facilitate the behcmarking of the resulting computed trajectories.
+
+The performances of the library have been evaluated with a set of experiments and tests in multiple robotic platforms. \textbf{OpenSoT} was used by the WALK-MAN Team during the DRC Finals to perform all the manipulation tasks showing the possibility to use the framework in a real scenario.
+
+Even if \textbf{OpenSoT} is a young project, it showed its ease of use by a large groups of first-time users with varying backgrounds and education levels that programmed tasks for the DRC Finals in a very short amount of time. Its flexible API allowed researchers\cite{Fang2015-cr} to easily extend it and successfully implement research code on top of a robust infrastructure.
+
+The \textbf{OpenSoT} library is documented on the website \href{http://opensot.github.io} and is available for download together with \emph{iDynUtils} and the \emph{capsule generator} on github, either as separate packages \cite{Mingo2015-oo,Ferrati2015-so,Rocchi_undated-my} or as part of our super-build system which takes care of installing the whole stack together with the necessary software dependencies \cite{Mingo_undated-pj}.

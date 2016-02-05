@@ -2,27 +2,16 @@
 Simulation techniques for modern robot hardware could provide invaluable tools for design, research, and development for robot controllers.
 For this reason, numerous efforts have been spent in developing robot simulators in the past two decades (\cite{DBLP:journals/corr/IvaldiPN14}), and more in general, in developing the large ecosystem that make simulating possible and convenient, from ever more fast and accurate dynamic solver libraries, to graphical editors for robotic systems and environments, planner libraries and visualization tools.
 
-The \emph{Open Dynamics Engine} (ODE, \cite{opende}) is one of the most widely used rigid body dynamics engine in robotics simulation. ODE simulates chains of rigid bodies connected and constrained by different types of joints. It has a built-in collision detection system and implements hard contacts using non-penetration constraint whenever two bodies collide. Beside the large number of project that use it, at the moment the development has been paused. \emph{Bullet} (\cite{bulletpe}) is another dynamic engine. It implements different direct/inverse rigid body dynamic algorithms (eg. Featherstone articulated body algorithm, \cite{Featherstone:2007:RBD:1324846}) as well as different solvers (eg. Mixed Linear Complementarity Problem, MLCP) and contact models. Bullet is used for a wide range of projects and its community is active and continues to improve it constantly.
-
-\emph{OpenRAVE} (\cite{diankovthesis}), \emph{Webots}  (\cite{Michel04cyberboticsltd}), \emph{V-REP} (\cite{conf/iros/RohmerSF13}) and OpenHRP  (\cite{journals/ijrr/KanehiroHK04}) all use the aforementioned dynamics engine, or variations thereof, and differ itself in the offer of libraries that aid in modeling, planning, controlling simulated systems.
-
-The most recent MuJoCo (\cite{conf/iros/TodorovET12}) offers a novel approach to simulating dynamic systems with contact, and performed well comparatively to other simulators in a set of benchmarks\cite{erez15}.
-
-In particular, in the last years, we have been witness to the significant investment in resources to provide reliable simulation tools for humanoid robots~\cite{Hsu14} which has been fostered by the Darpa Robotics Challenge (DRC). The results of this investment has allowed teams to compete virtually before qualifying for expensive robot hardware.  
-Gazebo~\cite{koenig2004design} is one of the most popular general-purpose robot simulators, funded through DRC efforts.
-It is a generic multi-robot simulator, historically developed taking into account simulations in outdoor environments, and especially interesting nowadays for its high level of integration, as it provides realistic simulation of sensory feedback. including noise modeling. Other than ODE and Bullet, it allows to use DART \cite{DART} and the promising SimBody \cite{Sherman2011241}, which is the only supported engine at the moment implementing variable step integration. For these reasons, and for its complex high level architecture, Gazebo has been used to compare algorithms for navigation and grasping in a controlled environment.
-To this day, its development is mainly performed by the Open Source Robotics Foundation (OSRF) under an open-source license, and is supported by a very large community.
-
 %%%%%%%%%%%% TITLE
 \subsection{Simulators as Abstractions to the Physical Hardware:\\YARP Plugins for the Gazebo Simulator}
 
-In the past years, robotics researchers have been developing several robotics frameworks, or middleware libraries, such as OpenRDK (\cite{cace08rdk}), YARP (\cite{Metta:YARP:2006}) or ROS (\cite{ROS}) in order to ease the creation of generic applications for robots and encourage code reuse. Some of these frameworks even enforce a component system \arnote{cite orocos} or formal validation \arnote{cite some of the work on DSL}, finally bringing in the research field some of the advancements brought in the industrial field in mission-critical applications. The performance overhead introduced by these frameworks is balanced by the architectural benefits, for example they allow to build modular systems to be integrated in order to execute complex and unforeseen tasks.
+In the past years, robotics researchers have been developing several robotics frameworks, or middleware libraries, such as OpenRDK (\cite{cace08rdk}), YARP (\cite{Metta:YARP:2006}) or ROS (\cite{ROS}) in order to ease the creation of generic applications for robots and encourage code reuse. Some of these frameworks even enforce a component system \todo{cite orocos} or formal validation \todo{cite some of the work on DSL}, finally bringing in the research field some of the advancements brought in the industrial field in mission-critical applications. The performance overhead introduced by these frameworks is balanced by the architectural benefits, for example they allow to build modular systems to be integrated in order to execute complex and unforeseen tasks.
 
 On the same level, modern simulators put an emphasis on robot simulation as a complex system, which is based but goes beyond the simulation of multibody dynamical systems, for example by simulating sensors.
 
-The current section will describe some notable technical details of the work~\cite{hoffman2014yarp} where a set of plugins for the Gazebo simulator  enables the interoperability between a robot controlled using the YARP framework, and Gazebo itself. These plugins allow applications written for a set of YARP-enabled robots to be run on the simulator with no changes. At the moment of writing, a non-comprehensive list of YARP_enabled robots includes COMAN, iCub and WALKMAN developed at the Istituto Italiano di Tecnologia, and the HyDRA robot developed in Tokyo. Our plugins have two main components: a YARP interface with the same API as the real robot interface, and a Gazebo plugin which handles simulated joints, encoders, IMUs, force/torque sensors and synchronization. The robot model is provided to the simulator by means of an SDF file, which describes all the geometric, dynamic and visual characteristics of a robot.
+The current section will describe some notable technical details of the work~\cite{hoffman2014yarp} where a set of plugins for the Gazebo simulator  enables the interoperability between a robot controlled using the YARP framework, and Gazebo itself. These plugins allow applications written for a set of YARP-enabled robots to be run on the simulator with no changes. At the moment of writing, a non-comprehensive list of YARP-enabled robots includes COMAN, iCub and WALKMAN developed at the Istituto Italiano di Tecnologia, and the HyDRA robot developed at the University of Tokyo. Our plugins have two main components: a YARP interface with the same API as the real robot interface, and a Gazebo plugin which handles simulated joints, encoders, IMUs, force/torque sensors and synchronization. The robot model is provided to the simulator by means of an SDF file, an XML file that models the robots and its environemtn, by describing all the geometric, dynamic and visual characteristics of a robot, favouring a descriptive rather than a minimum set of parameters. Converters from DH parameters to URDF/SDF file formats are available (\todo{put code of Silvio}).
 Once the SDF is read from Gazebo, the plugins are loaded and associated with the simulated robot model and the simulated world. Different modules for the robots developed at the IIT have been developed using Gazebo and the plugins as a testbed: joint impedance control plus gravity compensation, dual arm Cartesian control for manipulation tasks, dynamic walking, etc. In particular, the plugins have provided an invaluable testbench during the development of the high-level control modules to be using during the Darpa Robotics Challenge by the WALKMAN robot.
-The work is available as open-source at the address (\url{https://github.com/robotology/gazebo_yarp_plugins}). 
+The work is available as open-source at the address \url{https://github.com/robotology/gazebo_yarp_plugins}.
 
 \begin{figure}
         \centering
@@ -40,37 +29,30 @@ The work is available as open-source at the address (\url{https://github.com/rob
         \caption{Module A write desired joint position and read actual joint position without knowing if it is interfaced with the simulator or the robot since they expose the same interface.}\label{yarp_simulation}
 \end{figure}
 
-By accurately simulating robots and environments, code designed to operate on a real robot can be executed and validated on the simulated equivalent system. This avoids common problems associated with hardware such as short battery life, hardware failures, and unexpected and dangerous behaviors, particularly during the initial stages of development and tuning of new modules and controllers. 
-It is also much faster to have a simulation engine up and running than using a real robot, especially when the simulation engine can run faster than real-time. In this way the simulator becomes a fundamental part of the framework and the robot software development cycle as the first step to validate algorithms, thus minimizing the risks of hardware breaks.
-In these frameworks, the \emph{simulator} is a module that represents the real robot at the interface level (Figure \ref{yarp_simulation}). Such simulator module accepts control input (desired joint torques, desired joint position, ...) and outputs sensory feedback (cameras, joint positions, ...) from the simulated world. These simulators usually allow to have the human in-the-loop permitting to train a human operator. The most important aspect is that they allow to develop modules that directly will work in the real robot without any need to rewrite code. In fact, when the real robot is used, there is a module that replaces the simulator by providing the same hardware interfaces. 
+A preliminary stage of simulation during development of both research and production code, has many benefits that increase as the cost of production and maintanance of the hardware increases. Moreso, the ability of seamlessly switching between simulator and robot is an important factor that helps reduce development time and is not prone to errors and artifacts introduced during porting, enabling validation by simulation.
+Also the simulator provides fundamental advantages, like the ability to simulate faster than real-time.
 
-\begin{figure}[h!]
-  \centering
-    \includegraphics[width=0.475\textwidth]{images/coman_icub_gazebo.jpg}
-    \caption{COMAN and iCub interacting inside a Gazebo simulation of a kitchen. Blue dots represent contact points.}\label{coman_icub_gazebo}
-\end{figure}
+\subsection{Related Work}\label{related_work_simulators}
+The \emph{Open Dynamics Engine} (ODE, \cite{opende}) is one of the most widely used rigid body dynamics engine in robotics simulation. ODE simulates chains of rigid bodies connected and constrained by different types of joints. It has a built-in collision detection system and implements hard contacts using non-penetration constraint whenever two bodies collide. Beside the large number of project that use it, at the moment the development has been paused. \emph{Bullet} (\cite{bulletpe}) is another dynamic engine. It implements different direct/inverse rigid body dynamic algorithms (eg. Featherstone articulated body algorithm, \cite{Featherstone:2007:RBD:1324846}) as well as different solvers (eg. Mixed Linear Complementarity Problem, MLCP) and contact models. Bullet is used for a wide range of projects and its community is active and continues to improve it constantly.
 
-With these concepts in mind we decided to extend one of the most known robotics simulator, Gazebo (\cite{koenig2004design}), to be compatible with one of the most used robotics framework, YARP (Figure \ref{coman_icub_gazebo}), developed in the Italian Institute of Technology. 
-YARP is supported by the iCub simulator (iCubSim, \cite{Tikhanoff:2008:OSC:1774674.1774684}) that is dedicated to a specific platform. The needs of a more generic tool for simulating different robots rise up. 
-Gazebo, which has been recently chosen as the simulator for the DARPA Virtual Robotic Challenge (VRC, \cite{DRC}), allows the use of different dynamic engines, it is easily expandable through plugins and it has a strong and active community. Gazebo is maintained by the Open Source Robotics Foundation (\cite{OSRF}).
+\emph{OpenRAVE} (\cite{diankovthesis}), \emph{Webots}  (\cite{Michel04cyberboticsltd}), \emph{V-REP} (\cite{conf/iros/RohmerSF13}) and OpenHRP  (\cite{journals/ijrr/KanehiroHK04}) all use the aforementioned dynamics engine, or variations thereof, and differ itself in the offer of libraries that aid in modeling, planning, controlling simulated systems.
 
+The most recent MuJoCo (\cite{conf/iros/TodorovET12}) offers a novel approach to simulating dynamic systems with contact, and performed well comparatively to other simulators in a set of benchmarks\cite{erez15}.
 
-\subsection{Related Work}\label{state_of_art4}
-Our decision to add a YARP interface to Gazebo is motivated by the following considerations.
-We want to switch between fast, not accurate simulations and slow, accurate ones, thus we need the capability of choosing among different dynamic engines. We also want a simulator which is both easy to use and to expand in order to add new robot models. Finally, we prefer an open-source software with an active community and money investments.
-Gazebo fulfills our requirements, in particular it is expandable with a plugin structure: in this work our YARP interface is a collection of Gazebo plugins. 
+In particular, in the last years, we have been witness to the significant investment in resources to provide reliable simulation tools for humanoid robots~\cite{Hsu14} which has been fostered by the Darpa Robotics Challenge (DRC). The results of this investment has allowed teams to compete virtually before qualifying for expensive robot hardware.  
+Gazebo~\cite{koenig2004design} is one of the most popular general-purpose robot simulators, funded through DRC efforts.
+It is a generic multi-robot simulator, historically developed taking into account simulations in outdoor environments, and especially interesting nowadays for its high level of integration, as it provides realistic simulation of sensory feedback. including noise modeling. Other than ODE and Bullet, it allows to use DART \cite{DART} and the promising SimBody \cite{Sherman2011241}, which is the only supported engine at the moment implementing variable step integration. For these reasons, and for its complex high level architecture, Gazebo has been used to compare algorithms for navigation and grasping in a controlled environment.
+To this day, its development is mainly performed by the Open Source Robotics Foundation (OSRF) under an open-source license, and is supported by a very large community.
 
-
+Gazebo is expandable by means of its plugin structure: thusly our YARP interface to the Gazebo simulator is a collection of plugins, the \emph{gazebo\_yarp\_plugins}, that offer features wich will be described to various degrees of detail in the current section. 
 
 
 \subsection{Software Architecture}\label{structure}
-It is useful to understand Gazebo plugins and YARP device drivers before describing the structure of our plugins (from now on \emph{gazebo\_yarp\_plugins}).
-
 Gazebo plugins are C++ classes that extend the functionalities of Gazebo, while YARP device drivers are C++ classes used in YARP for abstracting the functionality of robot devices.
 Usually, each class of gazebo\_yarp\_plugins embeds a YARP device driver in a Gazebo plugin. 
 
 {\bf Gazebo Plugins}
-A plugin is a piece of code compiled as a shared library and inserted into the simulator. A plugin has direct access to all the functionalities of Gazebo from the physics engine to the simulated world. Furthermore, plugins are self-contained routines that are easily shared and can be inserted and removed from a running system. There are 4 types of plugins in Gazebo: \textbf{world}, \textbf{model} and \textbf{sensor} plugins are attached to and control a specific simulated world/model/sensor respectively, while \textbf{system} plugin is specified on the command line and loads during the Gazebo startup.
+A plugin is a piece of code compiled as a shared library and inserted into the simulator. A plugin has direct access to all the functionalities of Gazebo from the physics engine to the simulated world. There are 4 types of plugins in Gazebo: \textbf{world}, \textbf{model} and \textbf{sensor} plugins are attached to and control a specific simulated world/model/sensor respectively, while \textbf{system} plugin are specified on the command line and loads during the Gazebo startup.
 
 
 {\bf YARP \emph{Device Drivers}}
@@ -85,13 +67,13 @@ A device driver is a class that implements one or more interfaces. There are thr
 For example the Control Board device driver implements a set of interfaces that are used to control the robot (IPositionControl, ITorqueControl, etc.) and another set of interfaces to read data from the motors (IEncoders, etc).
 
 \subsubsection{Gazebo-YARP Plugins}
-The gazebo\_yarp\_plugins is made of:
+The gazebo\_yarp\_plugins is composed of:
 \begin{itemize}
     \item Gazebo plugins that instantiate YARP device drivers,
     \item YARP device drivers that wrap Gazebo functionalities inside the YARP device interfaces.
 \end{itemize}
-The plugins/devices already implemented are the \emph{Control Board}, \emph{6-axis Force Torque sensor}, \emph{Inertial Measurement Unit} (IMU) and a \emph{Clock} plugin used for synchronization.
-The first three plugins are directly related to the simulated objects and sensors, while the last one is a system plugin that synchronizes all the other YARP modules with the simulation time. 
+The plugins/devices implemented are the \emph{Control Board}, \emph{6-axis Force Torque sensor}, \emph{Inertial Measurement Unit} (IMU) and a \emph{Clock} plugin used for synchronization. The plugins stream data which is generated by the Gazebo simulator, and thus support all the features of the simulator, such as modelling Gaussian noise on the IMU readings.
+While the first three plugins are directly related to the simulated objects and sensors, the last one is a system plugin that synchronizes the YARP modules with the simulation time.
 
 \begin{figure}
         \centering
@@ -122,7 +104,8 @@ The first three plugins are directly related to the simulated objects and sensor
 \end{figure}
 
 \subsubsection{Control Board}
-The Control Board plugin allows to control the robot using YARP Interfaces, it is implemented as a Gazebo Model plugin. Every control board allows the user to control one or more joints (a kinematic chain such as the arm or leg, etc.) as specified in a configuration file. For each controlled joint the control board opens different interfaces, permitting the use of different type of controllers for each joint. Such interfaces include position control, torque control, encoders reading, torque measurement and joint impedance control. Usually the number of instantiated control boards is equal to the number of kinematic chains. Each control board, during every cycle of simulation, reads position, velocity and torque values from the simulated joints and sends desired joints position or torques to the simulator. The values read from the simulator are broadcasted through YARP interfaces in the YARP network, in a similar way the desired joint values come from YARP interfaces (Figure \ref{control_board}). The following YARP interfaces are used to control the robot.
+The Control Board plugin allows to control the robot using YARP Interfaces, it is implemented as a Gazebo Model plugin. Every control board allows the user to control one or more joints (a kinematic chain such as the arm or leg, etc.) as specified in a configuration file. For each controlled joint the control board opens different interfaces, permitting the use of different type of controllers for each joint. Such interfaces include position control, torque control, encoders reading, torque measurement and joint impedance control. Usually the number of instantiated control boards is equal to the number of kinematic chains.
+This duality between control boards and kinematic chains can be abandoned for the sake of performance on the real hardware, since every control board is usually implemented by a thread that streams data in a specified port. In that case, typical whole-body control then has to collate the network data coming from each control board and infer the global state of the robot. Each control board, during every cycle of simulation, reads position, velocity and torque values from the simulated joints and sends desired joints position or torques to the simulator. The values read from the simulator are broadcasted through YARP interfaces in the YARP network, in a similar way the desired joint values come from YARP interfaces (Figure \ref{control_board}). The following YARP interfaces are used to control the robot.
 \begin{itemize}
 \item \textbf{IPositionControl}: a position control with a linear trajectory generator considering a max joint speed
 \item \textbf{IPositionDirect}: a position control using Gazebo position PIDs
@@ -131,7 +114,7 @@ The Control Board plugin allows to control the robot using YARP Interfaces, it i
 \begin{equation}
     \tau_d = -P_d(q-q_d) - D_d\dot{q} + \tau_{offset}
 \end{equation}
-where $q_d$ is the desired equilibrium position, $P_d$ is the desired joint stiffness and $D_d$ is the desired joint damping. $\tau_{offset}$ is an extra signal that can be used for gravity compensation or inverse dynamics control.
+where $q_d$ is the desired equilibrium position, $P_d$ is the desired joint stiffness and $D_d$ is the desired joint damping. $\tau_{offset}$ is an extra term that can be used for gravity compensation or inverse dynamics control.
 \end{itemize}
 Furthermore, the Control Board implements the \textbf{IControlMode} interface that allows to change the type of controller online. All these interfaces are also available on the robot and they have the same behaviour.
 
@@ -142,11 +125,7 @@ Furthermore, the Control Board implements the \textbf{IControlMode} interface th
 \end{figure}
 
 \subsubsection{6-axis Force/Torque sensor}
-A Force/Torque sensor measures a wrench in the robot structure (Figure \ref{force_torque}). The sensor, at the time of writing, is simulated in Gazebo as if it was attached to the reference frame associated to a joint. On the YARP side, the reading of a generic sensor is implemented as a \textbf{IAnalogSensor} interface (Figure \ref{ianalog_force_torque}). The broadcasted data is a vector of six numbers representing the forces and the torques applied on that reference frame.
-
-\subsubsection{IMU sensor}
-An IMU measures velocity, orientation, and gravitational forces, using a combination of accelerometers and gyroscopes, of the link where it is placed. It is also possible to add white Gaussian noise on the measurement (Figure \ref{icub_inertial}).
-Similar to the Force/Torque sensor, it is implemented as a \textbf{IAnalogSensor} interface.
+A Force/Torque sensor measures a wrench in the robot structure (Figure \ref{force_torque}). The sensor streams the data that are provided by Gazebo from a joint information. In fact, simulators like ODE use a maximal coordinate system, meaning that every body is simulated as an unconstraied ribid body (6DOFs), where constraints are enforced through the LCP formulation. This makes so that also joints are constraints, and since during simulation tipically the solver allows for constraint violation to a certain degree, which is proportional to the forces acting on the system and the equivalent stiffness of the constraint, such violation can be used to infer the forces and torques acting on the joint. \todo{add more details about the stiffness of joints} On the YARP side, the reading of a generic sensor is implemented as a \textbf{IAnalogSensor} interface (Figure \ref{ianalog_force_torque}). The broadcasted data is a vector of six numbers representing the forces and the torques applied on that reference frame.
 
 \begin{figure}[h!]
   \centering
@@ -161,21 +140,21 @@ Similar to the Force/Torque sensor, it is implemented as a \textbf{IAnalogSensor
     \includegraphics[width=0.51\textwidth]{images/yarp_clock.eps}
     \caption{Time elapsed between each execution of the control loop, measured in simulation clock time and in wall clock time. Desired thread rate is $1$kHz and simulation time step is $1$ms}\label{yarp_clock_real_vs_simulated}
 \end{figure}
-A fundamental aspect in simulations is the synchronization between YARP modules and the simulated robot. A YARP module is a process in which one or more threads are started. When such modules are used in the real robot, the thread rate is timed by the machine (system) clock, also called the \emph{wall clock}. When the simulation is running we want the rate of such modules to be synchronized with the simulated time, otherwise the control loop could run faster or slower with respect to the simulated robot dynamics.
+A fundamental aspect of simulation is the synchronization between the simulation code and the high level task code. Often, ad-hoc solutions emply a simulator-in-the-loop approach were after a certain number of simulation steps, and possibly each step, a control step is executed. In this case, we have true bidirectional synchronization between the simulation and the task code, that is, locked-step simulation. Since our code needs to be indipendent and agnostic of the simulator, it needs to be a networked application, and a synchronization mechanism needs to be put in place. In particular, the low level control algorithms specified in \ref{control_board} is automatically synchronized with the simulation, and mimics the real-time characteristics of the low-level decentralized control running on the joint's boards of a robot. In order to simulate also real-time execution of the high-level code, synchronization between YARP modules and the simulated robot is needed.
+A YARP module is a process in which one or more threads are started. When such modules are used in the real robot, the thread rate is timed by the machine (system) clock, also called the \emph{wall clock}. In the same way, the client code's loop needs to be synchronized to the simulated clock when controlling a simulated robot.
 The \emph{real-time factor} (\emph{RTF}) of the simulation is given by 
 \begin{equation}
     RTF = update\_frequency \times step\_time
 \end{equation}
 and is kept to one when the desired update frequency is the inverse of the time increased at each step in the simulation.
 %because if the real time factor of the simulation is above 1.0 the control could run in general faster than the simulation and this is not realistic. 
-For instance if the simulation runs with a real time factor of 0.1, 10 seconds are needed to simulate 1 real second. Within this situation, the controller process should also be slowed down 10 times to be coherent with the simulation. To solve this issue we developed a \emph{clock} plugin that synchronizes modules with the simulated time.
-The \emph{clock} plugin is implemented as a System plugin and publishes on a YARP port the time information from the simulator. For every simulation step, the simulation time is incremented and the timestamp is sent via socket.
+For instance if the simulation runs with a real time factor of 0.1, 10 seconds are needed to simulate $1$ second of the physical system evolution. Within this situation, the controller process should also be slowed down 10 times to be coherent with the simulation. To solve this issue a \emph{clock} plugin has been designed that synchronizes the high level control modules with the simulated time when controlling a simulated robot. The idea is similar to the ROS clock plugin for the Gazebo simulator, in that it is not a lock-step synchronization, meaning that in order to run the simulation faster than real-time we need the control code to be fast enough, since the control code will be synchronized with the simulation clock but the simulation will not wait for the control code to complete execution before starting the next simulation step.
 
-YARP functions that provide access to the computer internal clock and support thread scheduling can be synchronized with an external clock (this is enabled with the \emph{YARP\_CLOCK} environment variable). Classes supporting periodic threads (\emph{RFModule} and \emph{RateThread}) are therefore automatically synchronized with the clock provided by the simulator. The \emph{yarp::os::Time} functionalities are also transparently working using the wall-clock or the simulation clock depending on the environment variable. Thread sleeps are performed using the right wall or simulated time.
+The \emph{clock} plugin is implemented as a System plugin and publishes on a YARP port the time information from the simulator. For every simulation step, the simulation time is incremented and the timestamp is sent via socket. The data sent via this port acts as signal for a $1$Khz simulated scheduler that wakes up the control threads that need to be woken up.
 
+In general, all the YARP functions that provide access to the computer internal clock and support thread scheduling can be synchronized with an external clockof choice, be either coming from the simulator or other means (this is enabled with the \emph{YARP\_CLOCK} environment variable). Classes supporting periodic threads (\emph{RFModule} and \emph{RateThread}) are therefore automatically synchronized with the clock provided by the simulator. The \emph{yarp::os::Time} functionalities are also transparently working using the wall-clock or the simulation clock depending on the environment variable. Thread sleeps are performed using the wall or simulated time depending on the circumstance.
 
-%, mean that the returned time value is that of the simulation, and thread sleeps are performed on simulation time. 
-When synchronized with the simulation clock the \emph{yarp::os::Time} delay does not explicitly sleep on a wall clock, rather a scheduler is synchronized with the simulation clock by performing blocking reads on the \emph{YARP\_CLOCK} port. This scheduler wakes up the threads that required a delay just once, when they have slept for the desired duration. Compared to the ROS::Time implementation which uses small sleeps on wall clock to check synchronization with the simulated clock, this allows to run simulations both slower and faster than real time and still have synchronization between threads and controls. In any case, when accessing the simulated clock Experiments showed the approach to be successful in synchronizing $1$kHz control loops against simulations running $1$kHz, thus having a $1$ms clock granularity.
+More in detail, when synchronized with the simulation clock the \emph{yarp::os::Time} delay does not explicitly sleep on a wall clock, rather a scheduler is synchronized with the simulation clock by performing blocking reads on the \emph{YARP\_CLOCK} port. This scheduler wakes up the threads that required a delay just once, when they have slept for the desired duration. Compared to the ROS::Time implementation which uses small sleeps on wall clock to check synchronization with the simulated clock, this allows to run simulations both slower and faster than real time and still have synchronization between threads and controls. In any case, when accessing the simulated clock Experiments showed the approach to be successful in synchronizing $1$kHz control loops against simulations running $1$kHz, thus having a $1$ms clock granularity.
 
 A similar solution for synchronization has been consequently used also in \cite{wbi14}.
 
@@ -201,44 +180,30 @@ A similar solution for synchronization has been consequently used also in \cite{
         \caption{iCub inside Gazebo.}\label{icub_inertial}
 \end{figure}
 
-\subsection{Simulation Description Format (SDF)}
-Gazebo uses an XML-style format, Simulation Description Format (SDF), to save and load information about a simulated world or model. An SDF encapsulates all the necessary information for a simulation such as:
-\begin{itemize}
-\item \textbf{Scene}: ambient lighting, sky properties, shadows.
-\item \textbf{Physics}: gravity, time step, physics engine.
-\item \textbf{Models}: collection of links, collision objects, joints, and sensors.
-\item \textbf{Lights}: point, spot, and directional light sources.
-\item \textbf{Plugins}: world, model, sensor, and system plugins.
-\end{itemize}
-Our Control Board, Force Torque sensor and IMU plugins are included inside the SDF file that describes our robots. For our humanoid bipedal robot, COMAN, we have five Control Board plugins (one for each kinematic chain), four Force/Torque sensor plugins (two in the legs and two in the arms) and one IMU sensor plugin (placed on the back of the waist). The SDF descriptions of COMAN and iCub are available in \url{https://github.com/EnricoMingo/iit-coman-ros-pkg} and in \url{https://github.com/robotology-playground/icub_gazebo} respectively.
-The clock plugin is loaded trough a command line parameter when the simulator is started.
+\subsection{Notes on Simulation of compliant, highly redundant robots}
+The problem of simulating compliant humanoid robots in particular, and highly redundant robots in general, is the computation burden due to the large amount of joints (and thus, rigit bodies) that need to be simulated.
+Work is ongoing to properly simulate these systems on Gazebo, by using the Spong model and effectively doubling the number of simulated joints.\todo{input Spong Equation} While this approach allows to accurately simulate robot compliance but poses performance problems.
+A practical approach that has been used for the simulation of the robots developed at the Istituto Italiano di Tecnologia that are equipped with SEA joints, in particular when used in position control schemes, has been to tune the system PIDs to the actual joint compliance in the robot. Assuming a perfect controller on the physical robot, and taking into account that the simulated PID has a torque feedback, then the P gain is dimensionally a stiffness, and the D gain is a damping.
+Technically, simulating compliant robots is easier than simulating stiff systems, were implicit integration schemes are needed for stability. \todo{cite ref}
+The current Gazebo simulator uses a semi-implicit integration scheme, nonetheless simualaing very rigid robots (through very rigid PIDs) requires small integration steps, which compromise simulation speed. In our experiments, simulation is always run with a $1$ms timestep.
 
-
-
-
-\subsection{Conclusions}\label{conclusions4}
-In this work we have presented a set of Gazebo plugins, named \emph{gazebo\_yarp\_plugins}, that allow to connect the robotics framework YARP to Gazebo itself. Gazebo was chosen since it is easy to use, it has the possibility to switch between different rigid multi-body dynamics engines, it is Open-Source and has an active community. Our plugins are based on YARP device drivers in order to have exactly the same interfaces in the real and simulated robot. This allows to write modules that will work both in the simulator and in the real robot without the need to change the code. This is a very important paradigm in robotics research and develop since it minimizes the presence of errors due to code porting. Furthermore the simulator becomes a tool that helps the developer in testing and validation before using the real platform.
-Such plugins consist in: a Control Board plugin to control the robot, a Force Torque sensor plugin and an IMU plugin. A special plugin dedicated to synchronization between modules and simulator was also implemented. The plugins were tested to simulate two humanoid bipedal robots, the COMAN and the iCub, both from the Italian Institute of Technology.
-
-
-\subsection{Future Work}\label{future_works4}
-\emph{Gazebo\_yarp\_plugins} is a project at an early stage that is gaining more and more interest inside the YARP community. Beside the good results obtained up to now, some works are still missing in order to be able to have $100\%$ compatibility with all the Gazebo functions. Furthermore we still need to implement plugins to connect YARP device drivers dedicated to cameras and RGB-D sensors to the simulated ones in Gazebo. We are also interested in multi-robot and human-robot simulation: we already have the possibility to easily simulate different robot models but it is still difficult to simulate multiple instances of the same robot. Furthermore, since our robots in IIT have flexible joints, we are investigating on how to simulate flexible joints without specifying extra joints/links inside the SDF of the robot. 
-Finally we are planning an official release of our plugins inside the Gazebo community.
-
-
-
+\subsection{Conclusions}
+In this section we have presented a set of Gazebo plugins, named \emph{gazebo\_yarp\_plugins}, that allow to connect the robotics framework YARP to multi-purpose simulator Gazebo. Gazebo was chosen since it is easy to use, it has the possibility to switch between different rigid multi-body dynamics engines, it is Open-Source and has an active community. Our plugins are based on YARP device drivers in order to have the same interfaces in the real and simulated robot. This allows to write modules that will work both in the simulator and in the real robot without the need to modifiy the code. This is a very important paradigm in robotics since it minimizes the chance of introducing errors due to porting of the code, and allows for automatic validation by means of simulation. Furthermore the simulator becomes a tool that helps the developer in testing and validating before using the real platform.
+Such plugins consist in: a Control Board plugin to control the robot, a Force Torque sensor plugin and an IMU plugin. A special plugin dedicated to synchronization between modules and simulator was also implemented. The plugins were tested to simulate several humanoid bipedal robots, including the COMAN, iCub, and WALKMAN from the Istituto Italiano di Tecnologia.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Simulating Grasps}
 
 Despite increasing popularity of compliant and underactuated hands, there exist few analytical and simulation tools for modeling such hardware.  High-fidelity predictive tools are important in mechanism design as well as grasp planning and optimization to exploit the favorable features of compliant hands.
-This work\cite{Rocchi2016-jq} studies a variety of simulation techniques to predict the success of a compliant gripper on irregular objects.  A new simulator is proposed that integrates compliance simulation with a recent Boundary Layer Expanded Mesh (BLEM) technique for enhancing stability of contact normal and penetration depth estimation.
+
+The following section will report studies \cite{Rocchi2016-jq} on a variety of simulation techniques to predict the success of a compliant gripper on irregular objects.  In particular, performances of a new simulator will be presented, that integrates compliance simulation with a recent Boundary Layer Expanded Mesh (BLEM) technique for enhancing stability of contact normal and penetration depth estimation.
 The novel simulator is compared against existing ones using a set of stability and fidelity indices: \emph{contact force smoothness} and \emph{contact position and normal stability}.
 Scores along these indices are correlated with the simulator's accuracy of predicting the success/failure of a given grasp pose and preshape.  
 A testing set of 13 grasps of varying success rate on physical hands were manually generated for the  \emph{RightHand Robotics} \emph{Reflex Hand} and \emph{Pisa-IIT} \emph{Soft Hand} on $4$ objects with a known 3D model and mass distribution. 
-Each grasp is simulated using multiple techniques, and experiments find that our simulator leads to improvements both in the stability indices, predictability of grasp success, and reduction of simulation artifacts.
+Each grasp is simulated using multiple techniques, and experiments find that the novel simulator leads to improvements both in the stability indices, predictability of grasp success, and reduction of simulation artifacts.
 
+The critical point of the evaluation lies on defining appropriate metrics, which can be considered universal in assessing the capabilities of a grap simulator to predit the behavior of compliant grippers grasping rigid objects. The physical and simulated experiments also have been designed to both highlight the importance of contact stability and accuracy during grasping (e.g. picking grasp poses where object ridges and geometric qualities of the object influennced the grasp outcome), and the importance of correctly simulating compliance (e.g. scenarios where the objec lies on the table and the hand fingers need to slide on the surface to perform a cage grasp).
 %is susceptible to contact stability, that the \emph{BLEM + hierarchical clustering} provides the best indices over the set of techniques presented, and illustrate some examples where a physical grasp grading can give unique insights over the stability of grasps empowered by environmental constraints, grasps of kinematic chains, and grasps of objects where the mass distribution is known.
 
 \subsection{Stable Simulation of Underactuated and Compliant Hands}
@@ -257,20 +222,14 @@ Although compliant hands are built to be more robust to sensing uncertainties th
 
 Unfortunately, classical models for grasp analysis are poor at predicting the behavior of compliant hands. Classic kinetostatic analysis and kinematic simulation under the quasi-static assumption are inappropriate for studying the deformation of the hand under varying contact forces.  Several researchers have turned to physics-based simulation analysis~\cite{Kappler15, JunggonKim13}, which improves grasp predictability by evaluating hundreds or thousands of trials, in which the simulator explores the range of nondeterministic effects, e.g., external perturbations, pose uncertainty, geometric uncertainty, and joint friction. Reliable simulation is essential for such studies. However, compliant hands pose a challenge for dynamic simulation tools, which often have trouble remaining stable in the presence of multiple frictional (and sometimes sliding or rolling) contacts and stiff internal mechanisms, for example, springs and tendons. When the object is not considered to be fixed to the environment, object-hand interactions need to be simulated taking dynamics into account, and a faithful representation of contact has to be available in order to detect the making/breaking of contacts, inadvertent contact, and sticking/slipping conditions. 
 
-This paper presents a new physics simulator for compliant hands interacting with rigid objects. It integrates models of compliant elements with recent contributions in robust mesh-mesh contact generation methods.  Compliant elements are modeled as spring-dampers while stiffer elements like tendons are handled using constraints and Baumgarte stabilization.  To handle mesh-mesh contact, we use the recent \emph{Boundary Layer Expansion Mesh} \emph{BLEM} method that avoids many simulation artifacts by generating continuously differentiable contact points \cite{Hauser13BLEM}. To handle large number of contacts, we employ contact clustering schemes. We explore various variations of BLEM against existing contact detection schemes in the {Open Dynamics Engine}~\cite{opende} and Bullet~\cite{bulletpe} physics engines. We also explore two contact filtering schemes ---  \emph{k-means clustering} and \emph{hierarchical clustering} -- against the \emph{contact sorting} method present in the Gazebo simulator. 
+This paper presents a new physics simulator for compliant hands interacting with rigid objects. It integrates models of compliant elements with recent contributions in robust mesh-mesh contact generation methods.  Compliant elements are modeled as spring-dampers while stiffer elements like tendons are handled using constraints and Baumgarte stabilization\todo{cite or add example}.  To handle mesh-mesh contact, the recent \emph{Boundary Layer Expansion Mesh} \emph{BLEM} method is used, that avoids many simulation artifacts by generating continuously differentiable contact points \cite{Hauser13BLEM}. To handle large number of contacts, contact clustering schemes is employed. Various variations of BLEM are explored against existing contact detection schemes in the popular {Open Dynamics Engine}~\cite{opende} and Bullet~\cite{bulletpe} physics engines. This comparison is particularly meaningful as those same contact detection schemes are used in vast the majority of the robot simulators software introduced in \ref{related_work_simulators} with the exception of MuJoCo and SimBody. Two contact filtering schemes ---  \emph{k-means clustering} and \emph{hierarchical clustering} --- are then compared against the \emph{contact sorting} method implemented in the Gazebo simulator.
 
-We establish a set of indices for characterizing the stability of grasping simulations at the level of contact point and force prediction.  We then perform a series of experiments comparing grasps performed on the physical hardware against results from a variety of simulation tools. Experiments demonstrate that grasp predictability is found to be correlated to the contact stability indices.  Furthermore, our new simulator is demonstrated to achieve improved fidelity regarding the predictability of grasp success/failure compared to existing off-the-shelf simulators.  
+Finally, a set of indices is established for characterizing the stability of grasping simulations at the level of contact point and force prediction.  A  series of experiments is performed, comparing grasps performed on the physical hardware against results from a variety of simulation tools. Experiments demonstrate that grasp predictability is found to be correlated to the contact stability indices.  Furthermore, the new simulator is demonstrated to achieve improved fidelity regarding the predictability of grasp success/failure compared to existing off-the-shelf simulators.  
 %Dynamic simulation tools face the problem of stability, in  particular contact stability in mesh-to-mesh contact scenarios, and when dealing with systems comprised of elements that span different orders of magnitudes in compliance and inertial parameters.
 
 %%A set of successful and unsuccessful grasps is first hand-picked and performed on the compliant underactuated %The hand pregrasp pose and preshape, in case of the \emph{Reflex Hand}, is stored, and then each grasp is simulated multiple times with pose disturbance from a random distribution.
 
-%[KH: the paper is only 6 pages, you don't need an outline. ]
-%The work is structured as follows: in section \ref{relwork} the state of the art in the simulation of underactuated and compliant hands is reported. In section \ref{methods} a series of indices is established, which take into account quantitatively and qualitatively the grasp simulation stability and fidelity. In section \ref{experiments} data collected in various simulation tools is reported.
-
-\subsection{Related Work}
-\label{relwork}
-
-
+\subsection{Related Work}\label{related_work_grasp}
 {\bf Robot Simulators.}
 A few robot simulators and toolkits are specialized in grasping, such as GraspIt!~\cite{Miller04}, OpenRave~\cite{Diankov08OpenRAVE} and OpenGRASP~\cite{Leon10OpenGRASP}, which have built-in functionality for grasp analysis. However, replicability of these prior methods assume complete, precise actuation of the hand.
 
@@ -283,12 +242,12 @@ In~\cite{Bonilla14} a dynamic simulation of the Pisa/IIT Softhand is implemented
 %In \cite{BerensonManipulation13}, a simplified approach to modeling deformable objects is presented where the assumption of "diminishing rigidity" is used (the effect of gripper motion along the deformable object diminishes as the distance from the gripper increases) to compute approximated Jacobians used to manipulate deformable objects locally.
 
 {\bf Grasp analysis and planning.}  
-Classical grasp analysis typically studies the shape of the grasp wrench space (GWS), which is the convex hull of wrenches applicable by a unit force at each contact. For example, the {\emph{epsilon quality} $\varepsilon_{\text{GWS}}$} \cite{Ferrari92, Pokorny13c} studies the size of the largest ball inscribed within the GWS, which is a proxy for how likely the grasp will resist a random  disturbance force. 
+Classical grasp analysis typically studies the shape of the grasp wrench space (GWS), which is the convex hull of wrenches applicable by a unit force at each contact. For example, the {\emph{epsilon quality} $\varepsilon_{\text{GWS}}$} \cite{Ferrari92, Pokorny13c} studies the size of the largest ball inscribed within the GWS, which is a proxy for how likely the grasp will resist a random  disturbance force. \todo{put some more background on these metrics!}
 However, several studies have suggested weaknesses of classical methods, such as an inability to measure robustness to perturbations in contact locations or grasp / object pose~\cite{Weisz12}. 
 
 The use of physics simulation in grasp quality assessment has also been shown to yield improved prediction over classical indices \cite{Kappler15,JunggonKim13}.  In \cite{JunggonKim13} the robustness of automatically generated grasp sets is assessed, and success of grasps in physical experiments is correlated with the predicted success using simulation. The predicted success ranked with metrics that took into account the number of links in contact during the grasp, and included position uncertainty and dynamic simulation of the object during grasp, were the one with a stronger correlation with the physical experiments.
 In \cite{Kappler15} different grasp stability indices over a set of grasps on a large database of objects is correlated with grasp success as predicted by humans. The analysis concludes that the metric based on  physics-simulation is a more consistent and less noisy predictor than the $\varepsilon$-metric.
-This paper is philosophically aligned with this recent work and the methods presented herein could be used as a tool for developing grasp assessment metrics for underactuated and compliant hands.
+The work presented in this chapter is philosophically aligned with this recent work and the methods presented herein could be used as a tool for developing grasp assessment metrics for underactuated and compliant hands.
 
 %We believe that especially with compliant manipulation, where the literature ventured only partially into the concept of grasp stability \cite{Bruyninckx??}, physical grasp quality assessment may provide an unique advantage over classical methods. In particular, it can score grasps which exploit environmental constraints, and grasp of jointed objects, it can exploit the weight distribution of the object and embed some information about the task (like in TWS measures), it can represent information regarding grasp robustness by simulating a series of perturbed grasps (simulating in fact what the ICR analytically computes), and include considerations over the friction properties of the objects and the hand (like in the classic Q-measure), and over constant perturbations like gravity.
 
@@ -299,12 +258,12 @@ This paper is philosophically aligned with this recent work and the methods pres
 
 
 {\bf Simulation quality metrics.}
-Generic indices for evaluating the contact response fidelity of dynamic physics engines were established in \cite{Boeing07}. For example, the accuracy of the static friction coefficient is tested by spawning a box on a plane with known static friction values, and the slope of the plane is incrementally increased until the object starts to slide.  The penetration error during collision is measured as the deviation from 0.  \cite{Erez15} defines some application specific metrics, like a grasping metric, in which robustness to the contact handling is tested by increasing the integration step until the simulated grasp becomes unstable.  In this work we are interested in relating micro-indices of contact stability in the physics to the macroscopic fidelity of the simulator to a physically attempted grasp.
+Generic indices for evaluating the contact response fidelity of dynamic physics engines were established in \cite{Boeing07}. For example, the accuracy of the static friction coefficient is tested by spawning a box on a plane with known static friction values, and the slope of the plane is incrementally increased until the object starts to slide.  The penetration error during collision is measured as the deviation from 0.  \cite{Erez15} defines some application specific metrics, like a grasping metric, in which robustness to the contact handling is tested by increasing the integration step until the simulated grasp becomes unstable.  In this work instead, a correlation between micro-indices of contact stability in the physics to the macroscopic fidelity of the simulator with respect to a physically attempted grasp will be highlighted.
 
 \subsection{Stable Dynamic Grasp Simulation}
 \label{methods}
 
-An underactuated hand is modeled as  $n$ articulated rigid links with $n_a$ degrees of actuation, with $n_a < n$.  The state of the fingers is denoted as $q \in \mathbb{R}^n$.  A control $u \in \mathbb{R}^{n_a}$ gives rise to a net torque on the joints $\tau \equiv \tau(q,u) \in \mathbb{R}^n$ which summarizes the sum of internal torques including gearing, stiffness, damping, joint stops, and friction.
+An underactuated hand is modeled as a mechanism \todo{fix in original paper} composed of articulated rigid links with $n$ degrees of freedom and $n_a$ degrees of actuation, with $n_a < n$.  The state of the fingers is denoted as $q \in \mathbb{R}^n$.  A control $u \in \mathbb{R}^{n_a}$ gives rise to a net torque on the joints $\tau \equiv \tau(q,u) \in \mathbb{R}^n$ which summarizes the sum of internal torques including gearing, stiffness, damping, joint stops, and friction.
 
 For the three-fingered ReFlex, $n_a=4$, with $1$ DoA for each finger. An additional pregrasp mechanism changes the direction in which finger $2$ and $3$ close from power grasp to pinch grasp. Assuming the distal joints rotate along a fixed axis, $n=7$, but in general the soft joint between the proximal and distal joints may flex and stretch.
 For the five-fingered SoftHand, $n_a=1$, $n=19$.
@@ -321,7 +280,7 @@ B(q)\ddot{q} + C(q,\dot{q})\dot{q} + G(q) = \tau(q,u) + f_{contact} + f_{ext}
 \end{equation}
 where $B(q)$ is the robot's mass matrix, $C(q,\dot{q})$ is the Coriolis force matrix, $G(q)$ is the generalized gravity vector, and $f_{ext}$ denotes the torques resulting from external forces, such as friction.
 
-A simulator is given an initial state $(q_0,\dot{q}_0)$, a control trajectory $u(t)$, and a final time $T$.  The goal is then to generate a trajectory of the robot $q(t):[0,T]\rightarrow \mathbb{R}^n$ as well as the motions of other objects $O_1,\ldots,O_m$. The most challenging portions of simulating underactuated hands are 1) calibrating accurate models, particularly of $\tau$, 2) calculating contact force distributions $\rho$ to prevent interpenetration and to simulate friction, and 3) maintaining stability under often stiff dynamics, particularly in $\tau$.
+A simulator is given an initial state $(q_0,\dot{q}_0)$, a control trajectory $u(t)$, and a final time $T$.  The goal is then to generate a trajectory of the robot $q(t):[0,T]\rightarrow \mathbb{R}^n$ as well as the motions of other objects $O_1,\ldots,O_m$. The most challenging problems in simulating underactuated hands are 1) calibrating accurate models, particularly of $\tau$, 2) calculating contact force distributions $\rho$ to prevent interpenetration and to simulate friction, and 3) maintaining stability under often stiff dynamics, particularly in $\tau$.
 
 The linear complementarity problem (LCP)~\cite{Anitescu97} method is a popular method for calculating contact force distributions in rigid body physics simulators because it solves for forces that prevent interpenetration (to some degree; slight interpenetration does occur due to numerical errors).  All the simulators compared in this paper use the LCP method, although other techniques such as penalty forces and impulse-based methods have also been developed.
 
@@ -330,34 +289,34 @@ The linear complementarity problem (LCP)~\cite{Anitescu97} method is a popular m
 
 Underactuated and compliant hands are linked with transmission mechanisms, e.g., tendons or mechanical linkages, that distribute actuator effort across multiple joints. They also include spring mechanisms that restore the hand to a consistent rest state once gripping effort is removed.  Simulations must allow for actuators to drive multiple links forward, but also to allow for forces on one link to affect the distribution of effort across other links. We use a fairly general model for these effects \cite{Grioli12}.
 
-First, we use a general constraint model that relates actuator displacements $s$ to configuration displacements $q$:
+First, a general constraint model that relates actuator displacements $s$ to configuration displacements $q$ is used:
 \begin{equation}
 \label{eq:quasi_static_equilibrium_0}
 s = R q
 \end{equation}
-where the reference configuration is chosen so the zero actuator and joint correspond. The $n_A \times n$ matrix $R$ determines how joint movements pull on each actuator, and can be constant, as in the case of the Pisa/IIT Softhand, or configuration dependent in the case of the ReFlex Hand~\cite{Birglen11}.  In practice the tendons may be slightly elastic, but we assume they are sufficiently stiff so that direct simulation is unstable. 
+where the reference configuration is chosen so the zero actuator and joint correspond. The $n_A \times n$ matrix $R$ determines how joint movements pull on each actuator, and can be constant, as in the case of the Pisa/IIT Softhand, or configuration dependent in the case of the ReFlex Hand~\cite{Birglen11}.  In practice the tendons may be slightly elastic, but it will be assumed that they are sufficiently stiff so that direct simulation is unstable. 
 
-We assume the drive mechanism generates resultant torques on individual joints in order to maintain these constraints.  Denote the force generated by the actuator as $\sigma \in \mathbb{R}^n$, and the torques generated by the drive mechanism be denoted $\tau_{d} \in \mathbb{R}^n$. By the principle of virtual work, we have $\tau_{d} = R^T \sigma$.  Let us also define the joint torques produced by spring mechanisms as $\tau_{s} = - E q$ where $E$ is a $n \times n$ joint stiffness matrix (which is usually diagonal).  Neglecting friction effects, the resultant vector of joint torques is
+It is also assumed the drive mechanism generates resultant torques on individual joints in order to maintain these constraints.  Denote the force generated by the actuator as $\sigma \in \mathbb{R}^n$, and the torques generated by the drive mechanism be denoted $\tau_{d} \in \mathbb{R}^n$. By the principle of virtual work, we have $\tau_{d} = R^T \sigma$.  Let us also define the joint torques produced by spring mechanisms as $\tau_{s} = - E q$ where $E$ is a $n \times n$ joint stiffness matrix (which is usually diagonal).  Neglecting friction effects, the resultant vector of joint torques is
 \begin{equation}
 \label{eq:quasi_static_equilibrium}
 \tau = R^T\sigma - E q.
 \end{equation}
-Rather than simulate these torques directly, we derive a rest state of $q$ that attains quasistatic equilibrium by equating $\tau$ with the sum of inertial effects minus contact forces in \eqref{eq:Dynamics}. First, we determine the desired value $\tau$ determined by the l.h.s. of \eqref{eq:Dynamics} minus external forces:
+Rather than simulate these torques directly, a rest state of $q$ is derived that attains quasistatic equilibrium by equating $\tau$ with the sum of inertial effects minus contact forces in \eqref{eq:Dynamics}. First, the desired value $\tau$ is computed as determined by the l.h.s. of \eqref{eq:Dynamics} minus external forces:
 \begin{equation}
 \tau \equiv B(q)\ddot{q} + C(q,\dot{q})\dot{q} + G(q) - f_{contact} - f_{ext}
 \end{equation}
-We then solve for $\sigma$ and $q$ that satisfy the constraints \eqref{eq:quasi_static_equilibrium_0} and \eqref{eq:quasi_static_equilibrium} by solving a system of linear equations, which has a closed form solution in terms of $s$, $R$, $E$, and $\tau$ \cite{Grioli12}.
+We can then solve for $\sigma$ and $q$ that satisfy the constraints \eqref{eq:quasi_static_equilibrium_0} and \eqref{eq:quasi_static_equilibrium} by solving a system of linear equations, which has a closed form solution in terms of $s$, $R$, $E$, and $\tau$ \cite{Grioli12}.
 
-Given the solved $q$ and $\sigma$, we then simulate joints using critically- or over-damped PID controllers with setpoint $q$.  We may also simulate the effect of the actuator force $\sigma$ on the actuator state $s$.
+Given the solved $q$ and $\sigma$, the joints are simulated using critically- or over-damped PID controllers with setpoint $q$.  A possible strategy is also to simulate the effect of the actuator force $\sigma$ on the actuator state $s$.
 
-We note this procedure needs to iterate over multiple time steps to achieve equilibrium between mechanism torques and contact forces, which may cause chattering especially if contact forces are nonsmooth. Future work may achieve better results by simultaneously choosing mechanism torques and forces via a constraint in the LCP solver.
+Note how this procedure needs to iterate over multiple time steps to achieve equilibrium between mechanism torques and contact forces, which may cause chattering especially if contact forces are nonsmooth. Future work may achieve better results by simultaneously choosing mechanism torques and forces via a constraint in the LCP solver. \todo{expand and clarify, also on original paper}
 
 \subsubsection{Contact generation}
 Contact generation is an important stage in simulation when the region of contact between two bodies is approximated by a finite number of contact points and normals. In LCP solvers, contact forces at these points are restricted to be positive in the normal direction with tangential component constrained by the friction at the point. Moreover, residual penetrations caused by numerical error are corrected for via penetration depth estimates, which are calculated in this stage.
 
 It is difficult to compute a stable, accurate representation of the penetration region between nonconvex bodies, and hence existing engines ODE and Bullet use the approximate GIMPACT and OPCODE methods for calculating contact points for mesh-mesh contact. The experience of many users as well as recent work suggested this method leads to unstable contact normal and penetration depth estimates, leading to unstable simulations~\cite{Hauser13BLEM}.  The same work presented the Boundary Layer Expanded Mesh (\emph{BLEM}) representation that approximates a mesh with a slightly expanded version, which allows calculating accurate penetration distances and normals~\cite{Hauser13BLEM}. 
 
-The \emph{BLEM} method treats a mesh as having a small margin $r$ around it, and when two BLEMs are overlapping by a distance less than the sum of their margins, the penetration depth and direction can be computed by distance queries on the underlying meshes.  More precisely, a BLEM $(M,r)$ is the Minkowski sum (or dilation) 
+The \emph{BLEM} method treats a mesh as having a small margin $r$ around it, and when two BLEMs are overlapping by a distance less than the sum of their margins, the penetration depth and direction can be computed by distance queries on the underlying meshes.  More precisely, a BLEM\todo{explain more in depth} $(M,r)$ is the Minkowski sum (or dilation) 
 \begin{equation}
 M \oplus S=\left\{v+s|v \in M,s \in S\right\}
 \end{equation}
@@ -367,7 +326,6 @@ Contact generation between two BLEMs $(M_1,r_1)$ and $(M_2,r_2)$ is handled by d
 
 
 \subsubsection{Contact clustering}
-
 During close mesh-mesh contact, the contact generator may produce a large number of contact points, which leads to slow computation of contact response. This is a particular problem for LCP-based solvers due to their superlinear running time.  As a result, researchers have taken an interest in contact clustering methods that combine multiple contacts into fewer contacts, which still yield similar post-contact response.  Also, since having nearby contacts lead to ill-conditioned wrench matrices, clustering may in fact improve numerical stability.  We compare the effect of several contact clustering methods in this paper.
 
 For example, a distribution of forces on a planar surface of a rigid body yields an equivalent wrench to a distribution on the convex hull of that surface. As a result, a set of coplanar contacts can be collapsed into their convex hull with zero loss of theoretical simulation accuracy in LCP-based solvers.  Similarly, several contacts with similar position and normal can be approximated as a single ``average'' contact with only a small loss of accuracy.
@@ -388,11 +346,11 @@ In \emph{contact sorting}, the contacts are first sorted according to the penetr
 
 \subsection{Contact stability}
 
-Here we present the metrics used in this paper for evaluating the stability of contact points and contact forces at a fine granularity during the simulation of grasping.  These were chosen to correlate to the position, normal, and force dimensions that define the point contact models used in classical grasp analysis, which forms the basis of most grasp planning techniques.
+In the following section are introduced the metrics used in this work for evaluating the stability of contact points and contact forces at a fine granularity during the simulation of grasping.  These were chosen to correlate to the position, normal, and force dimensions that define the point contact models used in classical grasp analysis, which forms the basis of most grasp planning techniques.
 
 \subsubsection{Contact Force Smoothness}
 
-At equilibrium, we expect the contact forces exerted on the objects to be as close to constant as possible. Our first measurement penalizes fluctuations and spikes in force at an (ostensible) equilibrium state. 
+At equilibrium, we expect the contact forces exerted on the objects to be as close to constant as possible. We thus want to penalize fluctuations and spikes in force at an (ostensible) equilibrium state. 
 
 The resultant contact force exerted on body $i$  is $f_i \equiv \int_{x\in S_i(q)} \rho_i(x)$, which the simulator approximates by a finite set of contact forces.  The contact force smoothness index measures the normalized standard deviation of resultant forces. (It may be possible to also include resultant torques  $m_i \equiv \int_{x\in S_i(q)} (x-o_i) \times \rho_i(x)$ but these are highly correlated to forces for most grasps so we ignore them.) 
 
@@ -402,7 +360,7 @@ S_{cf} \equiv \frac{1}{|C|} \sum_{|i\in C|} \sqrt{\|Var[f_i(t)]\|_F} / E[||f_i(t
 \end{equation}
 
 \subsubsection{Contact position and normal stability}
-We also measure the stability of contact positions and normals during an equilibrium grasp.  A simulator approximates the distribution of contact forces with a set of point contacts at location $x_1,\ldots,x_k$ and their corresponding normals $n_1,\ldots,n_k$.  We compute the average contact position $\hat{x}_i$ on body $i$ and average contact normal $\hat{n}_i$ and study their fluctuations over time.
+We also would like to measure the stability of contact positions and normals during an equilibrium grasp.  A simulator approximates the distribution of contact forces with a set of point contacts at location $x_1,\ldots,x_k$ and their corresponding normals $n_1,\ldots,n_k$.  We can compute the average contact position $\hat{x}_i$ on body $i$ and average contact normal $\hat{n}_i$ and study their fluctuations over time.
 
 The equations are as follows:
 \begin{equation}
@@ -449,7 +407,7 @@ For the two hands, a series of grasps are selected for each object in the set:
 \emph{hammer, ketchup bottle, spray bottle} and a \emph{pasta box}.
 The \emph{hammer} and the \emph{pasta box} are modeled by hand. The rest of the objects have been scanned using a \emph{Makerbot Digitizer}. The results and details of the mesh reconstruction are shown and detailed in Fig. \ref{meshes}.
 Dimensions are given in Tab.~\ref{table:object}.
-We also assume an approximate mass distribution for the \emph{hammer}, and for the mass of the the rest of the objects.
+We assume an approximate mass distribution for the \emph{hammer}, and for the mass of the the rest of the objects.
 In all the experiments, the objects are laying on a table.
 
 
@@ -535,7 +493,7 @@ The grasp procedure for the \emph{Reflex Hand} consists in closing all the finge
 
 The grasp is then performed in simulation.
 We simulate the \emph{Reflex Hand} using \emph{Klamp't} v$0.6.2$, and the \emph{Soft Hand} using \emph{Gazebo} v$4.0$ with a preliminary version of the \emph{Soft Hand plugin}~\cite{Rosales15SHP}.
-The \emph{Gazebo} simulator is tested against our patch \cite{Rocchi15GBP} where \emph{BLEM} is used. In Gazebo, the simple contact sorting algorithm is used for contact filtering. The \emph{Klamp't} simulator is tested with  \emph{BLEM} against the default in Open Dynamics Engine \emph{OPCODE}.  In Klamp't examples, we use $k$-means clustering with a maximum of 20 contacts.
+The \emph{Gazebo} simulator is tested against the patch \cite{Rocchi15GBP} where \emph{BLEM} is used. In Gazebo, the simple contact sorting algorithm is used for contact filtering. The \emph{Klamp't} simulator is tested with  \emph{BLEM} against the default in Open Dynamics Engine \emph{OPCODE}.  In Klamp't examples, $k$-means clustering is used with a maximum of 20 contacts.
 
 
 
@@ -594,7 +552,7 @@ The \emph{Gazebo} simulator is tested against our patch \cite{Rocchi15GBP} where
 The simulated grasp pipeline is as follows:
 \begin{itemize}
 \item The object and hands are spawned in the pregrasp and preshape configuration,
-\item For the Soft Hand, the hand is closed maximally, for the Reflex Hand, a force threshold technique equivalent to the one performed on the physical hardware is used to arrest the hand closure (the object will move accordingly),
+\item For the Soft Hand, the hand is closed maximally, for the Reflex Hand, a force threshold technique equivalent to the one performed on the physical hardware is used \todo{also on paper fix: explain which technique was used} to arrest the hand closure (the object will move accordingly),
 \item The hands tries to lift the object,
 \item The grasp is perturbed by commanding jerking movements of the wrist,
 \item Finally the grasp opens to drop the object.
@@ -644,7 +602,4 @@ It can also be seen that OPCODE leads to significant interpenetration artifacts,
 These results suggest that although stable simulation is crucial for obtaining reasonable predictions, it is still challenging for simulation to accurately discern the boundary of feasible/infeasible grasps without considerable tuning.  The large number of grasp successes likely indicates an improperly calibrated coefficient of friction or absolute grasp force. An interesting area for future work would be to automatically tune the robot model to obtain a match with physical experiments.
 
 \subsection{Conclusions}
-\label{conclusions5}
-
 A series of simulation stability and fidelity criterion have been established. They have been tested on two different compliant and underactuated hardware platforms, the \emph{RightHand Robotics' Reflex Hand} and the \emph{Pisa/IIT SoftHand}. A set of grasps has been performed on the physical hardware using $4$ different objects of different shapes and characteristics, in different grasping scenarios, and then validated using \emph{Klamp't} and \emph{Gazebo}, using different techniques for \emph{contact clustering} and \emph{contact generation}. The experimental results show that  simulations performed with the \emph{BLEM} \emph{contact generation} algorithm and the \emph{k-means clustering} contact filtering algorithm have the highest stability indices, and also exhibit the fewest artifacts.
-

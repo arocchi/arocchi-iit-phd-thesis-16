@@ -3,10 +3,30 @@ This set of tests and examples demonstrate the performances of the library and t
 This paper is a complement to the first part where the theoretical foundation of the frameworks were presented. 
 
 \section{Development Pipeline}
+Part of the work in developing the hardware and software for the DRC competition entry of the WALKMAN robot involved organizing the efforts of a big team that needed to work under high pressure and deliver results in a very short amount of time. During one year and a half, a whole robot was built from scratch, together with a whole simulation framework, low level joint control, middleware for interfacing the low level with the high level control, high level component model and UI for teleoperation.
+Part of the work needed to feature such an achievement has involved adopting a build system.
+The \emph{YCM} framework developed by the iCub facility department in Istituto Italian di Tecnologia has been used for the WALKMAN project, and an optimal development flow has been designed for the large team. 
+The second fundamental aspect has been that of adopting a continuous build system and writing a very large set of unit and integration tests, especially for the core libraries and the high level control libraries.
+The GIT distributed source code managament system has been used, with gitlab used for hosting an environment for collaboration, issue-tracking and documentation sharing via its WIKI system.
 
 \section{Component Model}
+The compoment model developed is based on the yarp framework and named GYM.
+It contains a logging and configuration mechanism, paramHelper, for which a UI has been developed for online gain tuning. GYM provides facilities for automatic module creation. Every module is composed of a low frequency thread that accepts high level management commands, and a high frequency thread that takes care of the control and obtains sensor feedback from the robot and task level commands by the user.
 
 \section{Simulating and Controlling Compliant Robots}
+The simulator is a fundamental part of the framework and the robot software development cycle as the first step to validate algorithms, thus minimizing the risks of hardware failures.
+In these frameworks, the \emph{simulator} is a module that represents the real robot at the interface level (Figure \ref{yarp_simulation}). Such simulator module accepts control input (desired joint torques, desired joint position, ...) and outputs sensory feedback (cameras, joint positions, ...) from the simulated world. These simulators usually allow to have the human in-the-loop permitting to train a human operator. The most important aspect is that they allow to develop modules that directly will work in the real robot without any need to rewrite code. In fact, when the real robot is used, there is a module that replaces the simulator by providing the same hardware interfaces. 
+
+\begin{figure}[h!]
+  \centering
+    \includegraphics[width=0.475\textwidth]{images/coman_icub_gazebo.jpg}
+    \caption{COMAN and iCub interacting inside a Gazebo simulation of a kitchen. Blue dots represent contact points.}\label{coman_icub_gazebo}
+\end{figure}
+
+With these concepts in mind we decided to extend one of the most known robotics simulator, Gazebo (\cite{koenig2004design}), to be compatible with one of the most used robotics framework, YARP (Figure \ref{coman_icub_gazebo}), developed in the Italian Institute of Technology. 
+YARP is supported by the iCub simulator (iCubSim, \cite{Tikhanoff:2008:OSC:1774674.1774684}) that is dedicated to a specific platform. The needs of a more generic tool for simulating different robots rise up. 
+Gazebo, which has been recently chosen as the simulator for the DARPA Virtual Robotic Challenge (VRC, \cite{DRC}), allows the use of different dynamic engines, it is easily expandable through plugins and it has a strong and active community. Gazebo is maintained by the Open Source Robotics Foundation (\cite{OSRF}).
+
 \label{structure}
 It is useful to understand Gazebo plugins and YARP device drivers before describing the structure of our plugins (from now on \emph{gazebo\_yarp\_plugins}).
 
@@ -97,6 +117,18 @@ Similar to the Force/Torque sensor, it is implemented as a \textbf{IAnalogSensor
     \includegraphics[width=0.475\textwidth]{images/ianalog_force_torque.eps}
     \caption{The Force/Torque sensor in the left arm is implemented as a YARP IAnalogSensor interface. At every step the internal state of the plugin is updated with the last readings of forces and torques from the simulation.}\label{ianalog_force_torque}
 \end{figure}
+
+\subsection{Simulation Description Format (SDF)}
+Gazebo uses an XML-style format, Simulation Description Format (SDF), to save and load information about a simulated world or model. An SDF encapsulates all the necessary information for a simulation such as:
+\begin{itemize}
+\item \textbf{Scene}: ambient lighting, sky properties, shadows.
+\item \textbf{Physics}: gravity, time step, physics engine.
+\item \textbf{Models}: collection of links, collision objects, joints, and sensors.
+\item \textbf{Lights}: point, spot, and directional light sources.
+\item \textbf{Plugins}: world, model, sensor, and system plugins.
+\end{itemize}
+Our Control Board, Force Torque sensor and IMU plugins are included inside the SDF file that describes our robots. For our humanoid bipedal robot, COMAN, we have five Control Board plugins (one for each kinematic chain), four Force/Torque sensor plugins (two in the legs and two in the arms) and one IMU sensor plugin (placed on the back of the waist).
+The clock plugin is loaded trough a command line parameter when the simulator is started.
 
 \section{Whole-Body Control}
 \begin{wrapfigure}{r}{0.35\textwidth}
@@ -275,5 +307,5 @@ The success of the action will be determined according to the settings of the pr
 \end{table}
 
 \section{Conclusions}
-
-While in previous section we addressed the theoretical foundations of the framework, and presented a large set of experiments, in this section we analysed the API, the software infrastructure and the utilities ecosystem,  with the intent of demonstrating the its richness of features.
+While in previous section the theoretical foundations of the high level control framework we addressed, together with a large set of experiments, in this section the API, the software infrastructure and the utilities ecosystem has been addressed, with the intent of demonstrating the richness of features of our high level control scheme.
+Statistics and best-practices used in the WALKMAN team have been presented as part of the work for the DRC compeition. Lastly, the simulation, middleware and component model used by the team has been presented as a fundamental scaffolding of the work of the team and as a means of organizing the work of the team.
