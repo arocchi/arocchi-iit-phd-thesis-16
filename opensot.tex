@@ -336,7 +336,7 @@ where $\mathbf{p}_d = [x_d \quad y_d \quad z_d]$ is the desired position and $\b
 A particular case is the \emph{CoM} task which is defined as a Cartesian position task. 
 In both cases, the tasks can become minimum Cartesian velocity tasks by setting $\lambda=0$.
 
-\paragraph{Interaction} \todo{also in final version?}
+\paragraph{Interaction} \label{task:interaction} \todo{also in final version?}
 The interaction task consists in force control through an admittance scheme. This task is built on top of the Cartesian task since pose and velocity references are generated from a wrench error:
 \begin{equation}
 \Delta\x = \mathbf{C} \left({^\text{b}\w_\text{d,ee}} - {^\text{b}\w_\text{m,ee}} \right )
