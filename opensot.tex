@@ -14,6 +14,8 @@
 \def\de{\mathbf{\dot{e}}}
 \def\w{\mathbf{w}}
 
+\externaldocument{architecture}
+
 \todo{ADD material from the original ICRA work}
 The field of whole-body planning and control tries to find the solution to the problem of executing one or more task at the same time, while exploiting the capabilities of the entire body of redundant, floating-based robots in multi-contact scenarios with the environment.
 
@@ -128,7 +130,7 @@ Based on the operational space formalism the \emph{Standard Control Library} \ci
 A recent new library based on the same concept is \cite{Fok2015-cn}. 
 
 % TODO: cite trak-ik more in depth
-In \cite{Beeson_undated-te} their solution is compared to popular IK schemes as offered by \emph{KDL} \cite{Smits2011-db}, highlighting the advantages of optimization approaches to the common classic IK schemes.
+In \cite{Beeson15} their solution is compared to popular IK schemes as offered by \emph{KDL} \cite{Smits2011-db}, highlighting the advantages of optimization approaches to the common classic IK schemes.
 
 None of the considered libraries provides a complete set of implemented tasks, constraints and solvers that permits to describes and solve IK problems in an easy and versatile way.
 % TODO: Flacco published two interesting papers, "Unilateral constraints in the Reverse Priority redundancy resolution method" (PDF already available, IROS15) and "A Reverse Priority Approach to Smooth Task Transitions" submitted in T-RO, remember to cite as soon as it gets accepted
@@ -336,7 +338,7 @@ where $\mathbf{p}_d = [x_d \quad y_d \quad z_d]$ is the desired position and $\b
 A particular case is the \emph{CoM} task which is defined as a Cartesian position task. 
 In both cases, the tasks can become minimum Cartesian velocity tasks by setting $\lambda=0$.
 
-\paragraph{Interaction} \label{task:interaction} \todo{also in final version?}
+\paragraph{Interaction} \label{par:interaction} \todo{also in final version?}
 The interaction task consists in force control through an admittance scheme. This task is built on top of the Cartesian task since pose and velocity references are generated from a wrench error:
 \begin{equation}
 \Delta\x = \mathbf{C} \left({^\text{b}\w_\text{d,ee}} - {^\text{b}\w_\text{m,ee}} \right )
@@ -683,7 +685,7 @@ In the \emph{hot-start} also the previous decomposition of the matrix for the KK
 % \label{qpOasesProblemSolve}
 % \end{figure}
 
-When a QP has to be solved, the \emph{back-end} first tries to solve the problem using the \emph{hot-start}, if an error occurs then the \emph{warm-start} is used. If also the \emph{warm-start} fails a new \emph{initialization} of the QP Problem is performed (Figure \ref{qpOasesProblemSolve}). If also the \emph{initialization} fails then the solver will not generate a solution and notify the user by returning a \emph{false} value (Figure \ref{qpOasesProblemInit}).
+When a QP has to be solved, the \emph{back-end} first tries to solve the problem using the \emph{hot-start}, if an error occurs then the \emph{warm-start} is used. If also the \emph{warm-start} fails a new \emph{initialization} of the QP Problem is performed. If also the \emph{initialization} fails then the solver will not generate a solution and notify the user by returning a \emph{false} value.
 
 % REMOVED 05/02/16
 % \begin{figure}[htb] 
@@ -1102,11 +1104,10 @@ The constraint activates on a certain pair of links when the distance between th
 \end{figure*}
 
 \subsubsection{Solver}
-In this section we show some results regarding the IK solver distributed with the \textbf{OpenSoT} library described in \cite{rocchimingo:16}. In the first one we compare the results between the sparse and the dense implementation of the IK solver. In the second one we compare the quality of the generated joint trajectory changing the $\lambda$ parameter. 
+In this section we show some results regarding the IK solver distributed with the \textbf{OpenSoT} library. In the first one we compare the results between the sparse and the dense implementation of the IK solver. In the second one we compare the quality of the generated joint trajectory changing the $\lambda$ parameter. 
 
 \subsubsection{Sparse implementation}
-Most of the time, the cost function (45) in \cite{rocchimingo:16}
-%\ref{cost_function}
+Most of the time, the cost function \ref{cost_function}
 will result in a sparse matrix (in some particular cases this is not true, for instance when controlling the Center of Mass of the robot) with a dimension $m \times n$ where $m$ is the dimension of the task and $n$ is the number of the joints.  
 It is possible to use the sparsity of the matrices in order to speed up the computation: in particular, \emph{qpOASES} permits to define QP Problems in which Hessian matrices are sparse. However we have tested the performances of the sparse implementation against the dense implementation (in the dense implementation we do not use special data structure for sparse matrices) and we found that, for a medium size IK Problem (29 variables, up to 63 constraints), the real advantage is in the \emph{initialization} phase where the sparse solver is around twice faster than the dense solver. The IK Problem consists in 3 stacks: 
 \begin{equation}
