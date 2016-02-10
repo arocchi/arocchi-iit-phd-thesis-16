@@ -282,7 +282,7 @@ where $B(q)$ is the robot's mass matrix, $C(q,\dot{q})$ is the Coriolis force ma
 
 A simulator is given an initial state $(q_0,\dot{q}_0)$, a control trajectory $u(t)$, and a final time $T$.  The goal is then to generate a trajectory of the robot $q(t):[0,T]\rightarrow \mathbb{R}^n$ as well as the motions of other objects $O_1,\ldots,O_m$. The most challenging problems in simulating underactuated hands are 1) calibrating accurate models, particularly of $\tau$, 2) calculating contact force distributions $\rho$ to prevent interpenetration and to simulate friction, and 3) maintaining stability under often stiff dynamics, particularly in $\tau$.
 
-The linear complementarity problem (LCP)~\cite{Anitescu97} method is a popular method for calculating contact force distributions in rigid body physics simulators because it solves for forces that prevent interpenetration (to some degree; slight interpenetration does occur due to numerical errors).  All the simulators compared in this paper use the LCP method, although other techniques such as penalty forces and impulse-based methods have also been developed.
+The linear complementarity problem (LCP)~\cite{Anitescu97} method is a popular method for calculating contact force distributions in rigid body physics simulators because it solves for forces that prevent interpenetration (to some degree; slight interpenetration does occur due to numerical errors).  All the simulators compared in this section use the LCP method, although other techniques such as penalty forces and impulse-based methods have also been developed.
 
 
 \subsubsection{Modeling underactuation and compliance}
@@ -326,7 +326,7 @@ Contact generation between two BLEMs $(M_1,r_1)$ and $(M_2,r_2)$ is handled by d
 
 
 \subsubsection{Contact clustering}
-During close mesh-mesh contact, the contact generator may produce a large number of contact points, which leads to slow computation of contact response. This is a particular problem for LCP-based solvers due to their superlinear running time.  As a result, researchers have taken an interest in contact clustering methods that combine multiple contacts into fewer contacts, which still yield similar post-contact response.  Also, since having nearby contacts lead to ill-conditioned wrench matrices, clustering may in fact improve numerical stability.  We compare the effect of several contact clustering methods in this paper.
+During close mesh-mesh contact, the contact generator may produce a large number of contact points, which leads to slow computation of contact response. This is a particular problem for LCP-based solvers due to their superlinear running time.  As a result, researchers have taken an interest in contact clustering methods that combine multiple contacts into fewer contacts, which still yield similar post-contact response.  Also, since having nearby contacts lead to ill-conditioned wrench matrices, clustering may in fact improve numerical stability.  We compare the effect of several contact clustering methods in \ref{fig:clustering}.
 
 For example, a distribution of forces on a planar surface of a rigid body yields an equivalent wrench to a distribution on the convex hull of that surface. As a result, a set of coplanar contacts can be collapsed into their convex hull with zero loss of theoretical simulation accuracy in LCP-based solvers.  Similarly, several contacts with similar position and normal can be approximated as a single ``average'' contact with only a small loss of accuracy.
 

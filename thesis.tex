@@ -129,7 +129,7 @@
 \pagestyle{maincontentstyle} 	% fancy header and footer
 
 \chapter{Introduction}
-
+In the last years, a revolution took by the storm the robotics community. Large round of investments have pushed the boundaries of applied robotics in different fields: autonomous car driving in unstructured environments as fostered by the DARPA challenge first, humanoids working in disaster scenarios through the DARPA robotics challenge (DRC), a new round of big investments by the US government and Toyota in autonomous car driving.
 
 \chapter{Simulation of Compliant Robots}
 \input{simulator}
@@ -147,10 +147,11 @@ In this work, part of the results of the effort on the Darpa Robotics Challenge 
 Some of the results have been obtained in an attempt to engineer the state of the art in humanoid robotics.
 As previously highlighted, even though the research work in the humanoid robotics field is varied and is carried over by many laboratories around the world using different approaches and different goals, one of the surprising point of the competition lie inthe fact that the solutions adopted by so many teams tended to being very similar. One could argue how this showed a significant cap put by technology on the state of the art of more basic research.
 
-On a generic front for what is concerning the organization of the team for the DRC competition, a significant experience has been gained on the field:
+On a more generic front for what is concerning the organization of the team for the DRC competition, a significant experience has been gained on the field:
 \begin{itemize}
- \item we learn that humanoid robots in general are more robust than what we expect, with lots of falls during the Darpa Robotics Challenge not being fatal to the hardware. In particular, the WALKMAN robot fell graciously, in part thanks to its actuation design, and did not suffer significant damage to the structure, actuators or sensors. The foam padding and the cage structure protecting the head also played an important role for the structural integrity of the robot after falling.
- \item leading change is very difficult - the superbuild example
+ \item we learnt that humanoid robots in general are more robust than what we expected, with lots of falls during the Darpa Robotics Challenge not being fatal to the hardware. In particular, the WALKMAN robot fell graciously, in part thanks to its actuation design, and did not suffer significant damage to the structure, actuators or sensors. The foam padding and the cage structure protecting the head also played an important role for the structural integrity of the robot after falling.
+ \item leading change is very difficult. Streamlining a development cycle has encountered the resistance of the group initially, while has proven fundamental and appreciated later on. In particular, switching from single-module development to an automatic building with dependency resolution using YCM has been a challenge.
+ \item one of the crucial points for our software infrastracture has been adapting the \emph{iDynUtils} middleware to a new network configuration for our robot. For performance reasons, the initial setup with one YARP control board for every kinematic chain (meaning 6 threads, with 6 different set of ports streaming the sensors data and receiving input command for joints of that chain) has been substituted with a final setup with just a single Control Board for every joint in the robot. As a result, while having multiple kinematic chains allowed to control the robot even with missing limbs (i.e., during the initial development phase, were using only the lower body or only the upper body gave chance to the manipulation and locomotion teams to work independently as if having two different robots), the final setup was more performant on the limited resources on the on-board computer. Since the \emph{iDynUtils} package was not updated on time to be configurable for different Control Board designs, finally it neede to be hardcoded with the new robot configuration, with severe drawbacks in the overall software architecture and consequently on the productivity of researchers using the software stack (e.g., the need to change the code when switching from simulation to physical robot). Thus, the lesson learnt was that configurability of topology at every layer in the architecture is very important.
 \end{itemize}
 
 
