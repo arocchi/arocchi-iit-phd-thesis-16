@@ -917,14 +917,6 @@ T_{\substack{\text{Joint}\\\text{Posture}}}
 \end{figure*}
 In Figure \ref{tau_dyn} is possible to see the effect of the Dynamic constraint: some of the torques (on the legs) exceed the threshold of $20 \ [Nm]$ when not using the constraint while, in the other case, all the torques are in the bounds. In Figure \ref{dq_dyn}, also the computed velocity are smooth wrt the one computed without the constraint. This is payed in terms of Cartesian error, in Figure \ref{cartesian_error_dyn} is clear that the more aggressive control (without the Dynamic constraint) can track better the reference. Figure \ref{motion_dyn_constr} shows the generated motions in the two cases.
 
-\begin{figure*}[!ht]
-\vspace{2 mm}
-\centering
-\includegraphics[width=0.7\textwidth]{images/dyn/dyn_constr.eps}
-\caption{Motion generated without (up) and with (down) the dynamic constraint}
-\label{motion_dyn_constr}
-\end{figure*}
-
 \begin{figure*}
     \vspace{2 mm}
     \centering
@@ -969,7 +961,7 @@ The self collision avoidance constraint makes use of capsules as bounding volume
 \centering 
 \includegraphics[width=\textwidth]{images/dynamic_constr.eps} 
 \caption{In the upper sequence WALK-MAN falls due to a dynamically unfeasible motion while in the lower sequence the motion is dynamically feasible thanks to the dynamics constraint} 
-\label{gazebo}
+\label{motion_dyn_constr}
 \end{figure}
 
 For the robot dynamics constraint we are using $\sigma = 0.2$ and we are filtering the sensed (simulated) wrenches at the force/torque sensors using a simple filter:
@@ -990,7 +982,7 @@ The Cartesian task consists of a linear trajectory for the left hand, from the i
 \label{tau_torso}
 \end{figure}
 
-In Fig. \ref{gazebo} it can be observed the final motion performed by the robot when the robot dynamics constraint is not active (upper sequence) and when it is active (lower sequence). Without considering torque limits the robot falls in the second part of the squat motion. Fig. \ref{tau_torso} shows that the torques at the torso remains in the limits when using the robot dynamics constraint, while saturate when not using it.
+In Fig. \ref{motion_dyn_constr} it can be observed the final motion performed by the robot when the robot dynamics constraint is not active (upper sequence) and when it is active (lower sequence). Without considering torque limits the robot falls in the second part of the squat motion. Fig. \ref{tau_torso} shows that the torques at the torso remains in the limits when using the robot dynamics constraint, while saturate when not using it.
 
 \begin{figure}[htb] 
 \centering 

@@ -158,28 +158,6 @@ More in detail, when synchronized with the simulation clock the \emph{yarp::os::
 
 A similar solution for synchronization has been consequently used also in \cite{wbi14}.
 
-\begin{figure}
-        \centering
-        \begin{subfigure}[b]{0.475\textwidth}
-                \includegraphics[width=\textwidth]{images/icub_imu_b.eps}
-                \caption{Gazebo interface with iCub}
-                \label{yarp_simulation_icub_a}
-        \end{subfigure}%
-        \\
-        \begin{subfigure}[b]{0.475\textwidth}
-                \includegraphics[width=\textwidth]{images/icub_imu_a.eps}
-                \caption{A yarpscope showing on-line the acceleration measured by the simulated IMU along z}
-                \label{yarp_simulation_icub_b}
-        \end{subfigure}
-        \\
-        \begin{subfigure}[b]{0.475\textwidth}
-                \includegraphics[width=\textwidth]{images/icub_imu_c.eps}
-                \caption{Plot of accelerations measured by the IMU (data logged during simulation). Accelerations along x,y and z are respectively in red, green and blue}
-                \label{yarp_simulation_icub_c}
-        \end{subfigure}
-        \caption{iCub inside Gazebo.}\label{icub_inertial}
-\end{figure}
-
 \subsection{Notes on Simulation of compliant, highly redundant robots}
 The problem of simulating compliant humanoid robots in particular, and highly redundant robots in general, is the computation burden due to the large amount of joints (and thus, rigit bodies) that need to be simulated.
 Work is ongoing to properly simulate these systems on Gazebo, by using the Spong model and effectively doubling the number of simulated joints.\todo{input Spong Equation} While this approach allows to accurately simulate robot compliance but poses performance problems.
@@ -220,7 +198,7 @@ The critical point of the evaluation lies on defining appropriate metrics, which
 An increasing number of robot hand designers have been moving towards devices that make use of compliance and underactuation. The iHY~\cite{Odhner14}, Reflex Hand~\cite{ReflexHand}, Pisa/IIT SoftHand~\cite{Catalano14}, Robotiq 3 fingers gripper~\cite{Robotiq3Finger}, RBO~\cite{Deimel13} and RBO2~\cite{Deimel14} and Yale Hands~\cite{Ma13} are recent examples of underactuated compliant hands. The main benefits of such designs include hardware robustness and the capability of adapting the hand shape to a wide range of grasped objects. Underactuated hands provide many degrees of freedom of movement (DoFs) while being actuated by just a few degrees of actuation (DoAs), and clever passive mechanisms are designed to coordinate the actuation of multiple DoFs, which simplifies the otherwise complex hand control problem. %[KH: "taming" is too dramatic] taming the complexity of the hand control problem by means of intelligent hardware design.
 Although compliant hands are built to be more robust to sensing uncertainties than rigid ones, they typically increase actuation uncertainties. As a result, successful grasping still requires deliberation, particularly for objects of irregular shape or mass distribution. It is also challenging to grasp objects in clutter because fingers may be disturbed by inadvertent contact with the environment or other objects. Hence, model-based predictions of motions and forces can offer powerful insights for hardware design as well as grasp optimization and planning.
 
-Unfortunately, classical models for grasp analysis are poor at predicting the behavior of compliant hands. Classic kinetostatic analysis and kinematic simulation under the quasi-static assumption are inappropriate for studying the deformation of the hand under varying contact forces.  Several researchers have turned to physics-based simulation analysis~\cite{Kappler15, JunggonKim13}, which improves grasp predictability by evaluating hundreds or thousands of trials, in which the simulator explores the range of nondeterministic effects, e.g., external perturbations, pose uncertainty, geometric uncertainty, and joint friction. Reliable simulation is essential for such studies. However, compliant hands pose a challenge for dynamic simulation tools, which often have trouble remaining stable in the presence of multiple frictional (and sometimes sliding or rolling) contacts and stiff internal mechanisms, for example, springs and tendons. When the object is not considered to be fixed to the environment, object-hand interactions need to be simulated taking dynamics into account, and a faithful representation of contact has to be available in order to detect the making/breaking of contacts, inadvertent contact, and sticking/slipping conditions. 
+Unfortunately, classical models for grasp analysis are poor at predicting the behavior of compliant hands. Classic kinetostatic analysis and kinematic simulation under the quasi-static assumption are inappropriate for studying the deformation of the hand under varying contact forces.  Several researchers have turned to physics-based simulation analysis~\cite{Kappler15, JunggonKim13}, which improves grasp predictability by evaluating hundreds or thousands of trials, in which the simulator explores the range of nondeterministic effects, e.g., external perturbations, pose uncertainty, geometric uncertainty, and joint friction. Reliable simulation is essential for such studies. However, compliant hands pose a challenge for dynamic simulation tools, which often have trouble remaining stable in the presence of multiple frictional (and sometimes sliding or rolling) contacts and stiff internal mechanisms, like springs and tendons. When the object is not considered to be fixed to the environment, object-hand interactions need to be simulated taking dynamics into account, and a faithful representation of contact has to be available in order to detect the making/breaking of contacts, inadvertent contact, and sticking/slipping conditions. 
 
 This paper presents a new physics simulator for compliant hands interacting with rigid objects. It integrates models of compliant elements with recent contributions in robust mesh-mesh contact generation methods.  Compliant elements are modeled as spring-dampers while stiffer elements like tendons are handled using constraints and Baumgarte stabilization\todo{cite or add example}.  To handle mesh-mesh contact, the recent \emph{Boundary Layer Expansion Mesh} \emph{BLEM} method is used, that avoids many simulation artifacts by generating continuously differentiable contact points \cite{Hauser13BLEM}. To handle large number of contacts, contact clustering schemes is employed. Various variations of BLEM are explored against existing contact detection schemes in the popular {Open Dynamics Engine}~\cite{opende} and Bullet~\cite{bulletpe} physics engines. This comparison is particularly meaningful as those same contact detection schemes are used in vast the majority of the robot simulators software introduced in \ref{related_work_simulators} with the exception of MuJoCo and SimBody. Two contact filtering schemes ---  \emph{k-means clustering} and \emph{hierarchical clustering} --- are then compared against the \emph{contact sorting} method implemented in the Gazebo simulator.
 
@@ -233,7 +211,7 @@ Finally, a set of indices is established for characterizing the stability of gra
 {\bf Robot Simulators.}
 A few robot simulators and toolkits are specialized in grasping, such as GraspIt!~\cite{Miller04}, OpenRave~\cite{Diankov08OpenRAVE} and OpenGRASP~\cite{Leon10OpenGRASP}, which have built-in functionality for grasp analysis. However, replicability of these prior methods assume complete, precise actuation of the hand.
 
-In~\cite{Bonilla14} a dynamic simulation of the Pisa/IIT Softhand is implemented in the multi-body dynamics simulator MSC Adams~\cite{MSCAdams}. A method to generate pregrasp palm configurations w.r.t. the object pose is provided. The ability of this method to generate a set of stable grasps in simulation is then evaluated using  appropriate quality metrics. The results were somewhat successfully tested on an experimental scenario, but the authors acknowledge difficulties with hand-object penetrations and estimation of contact normals.
+In~\cite{Bonilla14} a dynamic simulation of the Pisa/IIT Softhand is implemented in the multi-body dynamics simulator MSC Adams~\cite{MSCAdams}. A method to generate pre-grasp palm configurations w.r.t. the object pose is provided. The simulator demonstrated moderate fidelity to an experimental scenario, but the authors acknowledge difficulties with hand-object penetrations and estimation of contact normals.
 
  A recent contribution in the Klamp't simulator is the notion of boundary-layer expanded meshes (BLEM) which were demonstrated to enable robust mesh-to-mesh contacts, even in the presence of non-watertight meshes~\cite{Hauser13BLEM}. In this work we extend Klamp't to handle compliant mechanisms, and also we adapted the BLEM technique into Gazebo as a plugin.
 
@@ -243,11 +221,11 @@ In~\cite{Bonilla14} a dynamic simulation of the Pisa/IIT Softhand is implemented
 
 {\bf Grasp analysis and planning.}  
 Classical grasp analysis typically studies the shape of the grasp wrench space (GWS), which is the convex hull of wrenches applicable by a unit force at each contact. For example, the {\emph{epsilon quality} $\varepsilon_{\text{GWS}}$} \cite{Ferrari92, Pokorny13c} studies the size of the largest ball inscribed within the GWS, which is a proxy for how likely the grasp will resist a random  disturbance force. \todo{put some more background on these metrics!}
-However, several studies have suggested weaknesses of classical methods, such as an inability to measure robustness to perturbations in contact locations or grasp / object pose~\cite{Weisz12}. 
-
-The use of physics simulation in grasp quality assessment has also been shown to yield improved prediction over classical indices \cite{Kappler15,JunggonKim13}.  In \cite{JunggonKim13} the robustness of automatically generated grasp sets is assessed, and success of grasps in physical experiments is correlated with the predicted success using simulation. The predicted success ranked with metrics that took into account the number of links in contact during the grasp, and included position uncertainty and dynamic simulation of the object during grasp, were the one with a stronger correlation with the physical experiments.
-In \cite{Kappler15} different grasp stability indices over a set of grasps on a large database of objects is correlated with grasp success as predicted by humans. The analysis concludes that the metric based on  physics-simulation is a more consistent and less noisy predictor than the $\varepsilon$-metric.
-The work presented in this chapter is philosophically aligned with this recent work and the methods presented herein could be used as a tool for developing grasp assessment metrics for underactuated and compliant hands.
+But recent studies have suggested weaknesses of classical methods, such as an inability to measure robustness to perturbations in contact locations or grasp / object pose~\cite{Weisz12}. 
+Physics simulation in grasp quality assessment has been shown to yield improved prediction over classical criteria \cite{Kappler15,JunggonKim13}.  In \cite{JunggonKim13} the robustness of automatically generated grasp sets is assessed, and success of grasps in physical experiments is correlated with the predicted success using simulation. 
+%The predicted success ranked with metrics that took into account the number of links in contact during the grasp, and included position uncertainty and dynamic simulation of the object during grasp, were the one with a stronger correlation with the physical experiments.
+In \cite{Kappler15} grasp stability criteria are correlated with grasp success as predicted by humans on a large database of objects. They concludes that physics-based metrics are more consistently predictive than a classical metric. %the $\varepsilon$-metric.
+The technique presented in this paper extends physics-based grasp assessment to the case of underactuated and compliant hands.
 
 %We believe that especially with compliant manipulation, where the literature ventured only partially into the concept of grasp stability \cite{Bruyninckx??}, physical grasp quality assessment may provide an unique advantage over classical methods. In particular, it can score grasps which exploit environmental constraints, and grasp of jointed objects, it can exploit the weight distribution of the object and embed some information about the task (like in TWS measures), it can represent information regarding grasp robustness by simulating a series of perturbed grasps (simulating in fact what the ICR analytically computes), and include considerations over the friction properties of the objects and the hand (like in the classic Q-measure), and over constant perturbations like gravity.
 
@@ -258,27 +236,27 @@ The work presented in this chapter is philosophically aligned with this recent w
 
 
 {\bf Simulation quality metrics.}
-Generic indices for evaluating the contact response fidelity of dynamic physics engines were established in \cite{Boeing07}. For example, the accuracy of the static friction coefficient is tested by spawning a box on a plane with known static friction values, and the slope of the plane is incrementally increased until the object starts to slide.  The penetration error during collision is measured as the deviation from 0.  \cite{Erez15} defines some application specific metrics, like a grasping metric, in which robustness to the contact handling is tested by increasing the integration step until the simulated grasp becomes unstable.  In this work instead, a correlation between micro-indices of contact stability in the physics to the macroscopic fidelity of the simulator with respect to a physically attempted grasp will be highlighted.
+Generic criteria for evaluating the contact response fidelity of dynamic physics engines were established in \cite{Boeing07}, such as accuracy of the friction coefficient, and penetration error. \cite{Erez15} defines some application specific metrics, like a grasping metric, in which robustness to the contact handling is tested by increasing the integration step until the simulated grasp becomes unstable.  In this work instead, a correlation between micro-indices of contact stability in the physics to the macroscopic fidelity of the simulator with respect to a physically attempted grasp will be highlighted.
 
 \subsection{Stable Dynamic Grasp Simulation}
 \label{methods}
 
-An underactuated hand is modeled as a mechanism \todo{fix in original paper} composed of articulated rigid links with $n$ degrees of freedom and $n_a$ degrees of actuation, with $n_a < n$.  The state of the fingers is denoted as $q \in \mathbb{R}^n$.  A control $u \in \mathbb{R}^{n_a}$ gives rise to a net torque on the joints $\tau \equiv \tau(q,u) \in \mathbb{R}^n$ which summarizes the sum of internal torques including gearing, stiffness, damping, joint stops, and friction.
+An underactuated hand is modeled as a mechanism composed of articulated rigid links with $n$ degrees of freedom and $n_a$ degrees of actuation, with $n_a < n$.  The state of the fingers is denoted as $q \in \mathbb{R}^n$.  A control $u \in \mathbb{R}^{n_a}$ gives rise to a net torque on the joints $\tau \equiv \tau(q,u) \in \mathbb{R}^n$ which summarizes the sum of internal torques including gearing, stiffness, damping, joint stops, and friction.
 
 For the three-fingered ReFlex, $n_a=4$, with $1$ DoA for each finger. An additional pregrasp mechanism changes the direction in which finger $2$ and $3$ close from power grasp to pinch grasp. Assuming the distal joints rotate along a fixed axis, $n=7$, but in general the soft joint between the proximal and distal joints may flex and stretch.
 For the five-fingered SoftHand, $n_a=1$, $n=19$.
 
 When in contact with external objects, the pressure distribution on a robot's link is a function $\rho_i(x):\partial S_i(q) \rightarrow \mathbb{R}^3$ where $\partial S_i(q)$ denotes the surface of link $i$. Given such a distribution, the resultant torques on the robot's joints are 
 \begin{equation}
-f_{contact} = \sum_i \int_{x\in S_i(q)} J_{x}^T(q) \rho_i(x)
+\tau_{contact} = \sum_i \int_{x\in S_i(q)} J_{x}^T(q) \rho_i(x) dx
 \end{equation} where $J_{x}(q)$ is the Jacobian matrix of point $x$.
 
-Ultimately, the dynamics of the robot are given by
+Thus, the dynamics of the robot in contact are given by
 \begin{equation}
 \label{eq:Dynamics}
-B(q)\ddot{q} + C(q,\dot{q})\dot{q} + G(q) = \tau(q,u) + f_{contact} + f_{ext}
+B(q)\ddot{q} + C(q,\dot{q})\dot{q} + G(q) = \tau(q,u) + \tau_{contact} + \tau_{ext}
 \end{equation}
-where $B(q)$ is the robot's mass matrix, $C(q,\dot{q})$ is the Coriolis force matrix, $G(q)$ is the generalized gravity vector, and $f_{ext}$ denotes the torques resulting from external forces, such as friction.
+where $B(q)$ is the robot's mass matrix, $C(q,\dot{q})$ is the Coriolis force matrix, $G(q)$ is the generalized gravity vector, and $\tau_{ext}$ denotes torques resulting from external forces, such as joint friction.
 
 A simulator is given an initial state $(q_0,\dot{q}_0)$, a control trajectory $u(t)$, and a final time $T$.  The goal is then to generate a trajectory of the robot $q(t):[0,T]\rightarrow \mathbb{R}^n$ as well as the motions of other objects $O_1,\ldots,O_m$. The most challenging problems in simulating underactuated hands are 1) calibrating accurate models, particularly of $\tau$, 2) calculating contact force distributions $\rho$ to prevent interpenetration and to simulate friction, and 3) maintaining stability under often stiff dynamics, particularly in $\tau$.
 
@@ -303,7 +281,7 @@ It is also assumed the drive mechanism generates resultant torques on individual
 \end{equation}
 Rather than simulate these torques directly, a rest state of $q$ is derived that attains quasistatic equilibrium by equating $\tau$ with the sum of inertial effects minus contact forces in \eqref{eq:Dynamics}. First, the desired value $\tau$ is computed as determined by the l.h.s. of \eqref{eq:Dynamics} minus external forces:
 \begin{equation}
-\tau \equiv B(q)\ddot{q} + C(q,\dot{q})\dot{q} + G(q) - f_{contact} - f_{ext}
+\tau \equiv B(q)\ddot{q} + C(q,\dot{q})\dot{q} + G(q) - \tau_{contact} - \tau_{ext}
 \end{equation}
 We can then solve for $\sigma$ and $q$ that satisfy the constraints \eqref{eq:quasi_static_equilibrium_0} and \eqref{eq:quasi_static_equilibrium} by solving a system of linear equations, which has a closed form solution in terms of $s$, $R$, $E$, and $\tau$ \cite{Grioli12}.
 
@@ -311,10 +289,10 @@ Given the solved $q$ and $\sigma$, the joints are simulated using critically- or
 
 Note how this procedure needs to iterate over multiple time steps to achieve equilibrium between mechanism torques and contact forces, which may cause chattering especially if contact forces are nonsmooth. Future work may achieve better results by simultaneously choosing mechanism torques and forces via a constraint in the LCP solver. \todo{expand and clarify, also on original paper}
 
-\subsubsection{Contact generation}
-Contact generation is an important stage in simulation when the region of contact between two bodies is approximated by a finite number of contact points and normals. In LCP solvers, contact forces at these points are restricted to be positive in the normal direction with tangential component constrained by the friction at the point. Moreover, residual penetrations caused by numerical error are corrected for via penetration depth estimates, which are calculated in this stage.
+\subsection{Contact generation}
+Contact generation is an important stage in simulation when the region of contact between two bodies is approximated by a finite number of contact points and normals. In LCP solvers, contact forces at these points are restricted to be positive in the normal direction with tangential component limited by the friction coefficient. Moreover, residual penetrations caused by numerical error are corrected for via penetration depth estimates computed in this stage.
 
-It is difficult to compute a stable, accurate representation of the penetration region between nonconvex bodies, and hence existing engines ODE and Bullet use the approximate GIMPACT and OPCODE methods for calculating contact points for mesh-mesh contact. The experience of many users as well as recent work suggested this method leads to unstable contact normal and penetration depth estimates, leading to unstable simulations~\cite{Hauser13BLEM}.  The same work presented the Boundary Layer Expanded Mesh (\emph{BLEM}) representation that approximates a mesh with a slightly expanded version, which allows calculating accurate penetration distances and normals~\cite{Hauser13BLEM}. 
+It is difficult to compute a stable, accurate representation of the penetration region between nonconvex bodies, and hence existing engines ODE and Bullet use the approximate GIMPACT and OPCODE methods for calculating mesh-mesh contact points. The experience of many users as well as recent work suggested this method often leads to unstable simulations~\cite{Hauser13BLEM}. The same work presented the Boundary Layer Expanded Mesh (\emph{BLEM}) representation that approximates a mesh with a slightly expanded version, which allows calculating accurate penetration distances and normals~\cite{Hauser13BLEM}. 
 
 The \emph{BLEM} method treats a mesh as having a small margin $r$ around it, and when two BLEMs are overlapping by a distance less than the sum of their margins, the penetration depth and direction can be computed by distance queries on the underlying meshes.  More precisely, a BLEM\todo{explain more in depth} $(M,r)$ is the Minkowski sum (or dilation) 
 \begin{equation}
@@ -326,7 +304,10 @@ Contact generation between two BLEMs $(M_1,r_1)$ and $(M_2,r_2)$ is handled by d
 
 
 \subsubsection{Contact clustering}
-During close mesh-mesh contact, the contact generator may produce a large number of contact points, which leads to slow computation of contact response. This is a particular problem for LCP-based solvers due to their superlinear running time.  As a result, researchers have taken an interest in contact clustering methods that combine multiple contacts into fewer contacts, which still yield similar post-contact response.  Also, since having nearby contacts lead to ill-conditioned wrench matrices, clustering may in fact improve numerical stability.  We compare the effect of several contact clustering methods in \ref{fig:clustering}.
+
+During close mesh-mesh contact, the contact generator may produce a large number of contact points, which leads to slow computation of contact response. This is a particular problem for LCP-based solvers due to their superlinear running time.  As a result, researchers have taken an interest in contact clustering methods that combine multiple contacts into fewer contacts, which still yield similar post-contact response.  Also, since having nearby contacts lead to ill-conditioned wrench matrices, clustering may in fact improve numerical stability. 
+
+Our experiments indicate that a deterministic version of the $k$-means algorithm, applied to the 7-D space of positions, normals, and friction coefficients, provides more stable clusters than hierarchical clustering, or the simple contact sorting used in Gazebo (Fig.~\ref{fig:clustering}).
 
 For example, a distribution of forces on a planar surface of a rigid body yields an equivalent wrench to a distribution on the convex hull of that surface. As a result, a set of coplanar contacts can be collapsed into their convex hull with zero loss of theoretical simulation accuracy in LCP-based solvers.  Similarly, several contacts with similar position and normal can be approximated as a single ``average'' contact with only a small loss of accuracy.
 
@@ -338,29 +319,29 @@ In \emph{contact sorting}, the contacts are first sorted according to the penetr
 \begin{figure}[!hbt]
 \begin{center}
         \includegraphics[width=0.95\columnwidth]     {images/ssoch/clustering}
-        \caption{Contact clustering yields qualitative differences in contact distribution}
+        \caption{Illustrating two contact clustering methods on a 2,000-spike ``spiky block''. Left: hierarchical clustering.  Right: $k$-means clustering. Centers of pressure are draw}
         \label{fig:clustering}
         \end{center}
 \end{figure}
 
 
-\subsection{Contact stability}
+\section{Contact stability metrics}
 
-In the following section are introduced the metrics used in this work for evaluating the stability of contact points and contact forces at a fine granularity during the simulation of grasping.  These were chosen to correlate to the position, normal, and force dimensions that define the point contact models used in classical grasp analysis, which forms the basis of most grasp planning techniques.
+In the following section are introduced the metrics used in this work for evaluating the stability of contact points and contact forces at a fine granularity during the simulation of grasping.  These metrics correspond to the position, normal, and force dimensions of point contact models used in classical grasp analysis, which forms the basis of most grasp planning techniques.
 
-\subsubsection{Contact Force Smoothness}
+\subsection{Contact Force Variation}
 
-At equilibrium, we expect the contact forces exerted on the objects to be as close to constant as possible. We thus want to penalize fluctuations and spikes in force at an (ostensible) equilibrium state. 
+At equilibrium, we expect the contact forces exerted on the objects to be as close to constant as possible. Our first measurement penalizes fluctuations and spikes in force at an (ostensible) equilibrium state. 
 
-The resultant contact force exerted on body $i$  is $f_i \equiv \int_{x\in S_i(q)} \rho_i(x)$, which the simulator approximates by a finite set of contact forces.  The contact force smoothness index measures the normalized standard deviation of resultant forces. (It may be possible to also include resultant torques  $m_i \equiv \int_{x\in S_i(q)} (x-o_i) \times \rho_i(x)$ but these are highly correlated to forces for most grasps so we ignore them.) 
+The resultant contact force exerted on body $i$  is $f_i \equiv \int_{x\in S_i(q)} \rho_i(x) dx$, which the simulator approximates by a finite set of contact forces.  The contact force smoothness index measures the normalized standard deviation of resultant forces. (It may be possible to also include resultant torques  $m_i \equiv \int_{x\in S_i(q)} (x-o_i) \times \rho_i(x) dx$ but these are highly correlated to forces for most grasps so we ignore them.) 
 
-Over a span of time $t$ where the object should be held in equilibrium by the physical hand, we measure the quantities $\sqrt{\|Var[f_i(t)]\|_F} / E[\|f_i(t)\|]$ for all bodies $i$ in the set $C$ of bodies touching the object.  Here $\|\cdot\|_F$ denotes the matrix Frobenius norm. We then report the final stability score:
+Over a span of time $t$ where the object should be held in equilibrium by the physical hand, we measure the quantities $\sqrt{\|Var[f_i(t)]\|_F} / E[\|f_i(t)\|]$ for all bodies $i$ in the set $C$ of bodies touching the object.  Here $\|\cdot\|_F$ denotes the matrix Frobenius norm. We then report the final score (0 being best):
 \begin{equation}
 S_{cf} \equiv \frac{1}{|C|} \sum_{|i\in C|} \sqrt{\|Var[f_i(t)]\|_F} / E[||f_i(t)||].
 \end{equation}
 
-\subsubsection{Contact position and normal stability}
-We also would like to measure the stability of contact positions and normals during an equilibrium grasp.  A simulator approximates the distribution of contact forces with a set of point contacts at location $x_1,\ldots,x_k$ and their corresponding normals $n_1,\ldots,n_k$.  We can compute the average contact position $\hat{x}_i$ on body $i$ and average contact normal $\hat{n}_i$ and study their fluctuations over time.
+\subsection{Contact position and normal variation}
+The second and third scores measure the stability of contact positions and normals during an equilibrium grasp.  A simulator generates a set of point contacts at location $x_1,\ldots,x_k$ and their corresponding normals $n_1,\ldots,n_k$ ($k$ varying by time step).  The scores measure the fluctuations of the average contact position $\hat{x}_i$ on body $i$ and average contact normal $\hat{n}_i$ over time (0 being best).
 
 The equations are as follows:
 \begin{equation}
@@ -391,11 +372,11 @@ Experiments are performed both with a RightHand Robotics' ReFlex Hand and Pisa/I
    \hline
    Object & Weight & Size \\
    \cline{1-3}
-   Hammer                   & 480 g     & 290mmX35mmX95mm      \\\hline
-   Spray Bottle (no cap)    & 703.5 g   & 220mmX120mmX40mm      \\\hline
-   Spray Bottle (with cap)  & 726 g     & 270mmX120mmX40mm      \\\hline
-   Ketchup              & 948.6 g   & 195mmX100mmX70mm   \\\hline
-   Barilla Box              & 487g      & 120mmX19mmX72mm      \\\hline
+   Hammer					& 480 g   	& 290mmX35mmX95mm      \\\hline
+   Spray Bottle (no cap)	& 703.5 g   & 220mmX120mmX40mm      \\\hline
+   Spray Bottle (with cap)	& 726 g   	& 270mmX120mmX40mm      \\\hline
+   Ketchup				& 948.6 g   & 195mmX100mmX70mm   \\\hline
+   Pasta Box				& 487g      & 120mmX19mmX72mm      \\\hline
    \end{tabular}
    \end{center}
    \caption{Weight of all the objects and approximate dimensions}
@@ -413,7 +394,7 @@ In all the experiments, the objects are laying on a table.
 
 Human-chosen grasps are selected in order to have a selection of robust grasps, non-robust grasps, and failed grasps as described in Tab.~\ref{table:grasp}. Robust grasps tolerate small variations in the object pose and disturbance forces. Non-robust grasps succeed some of the time, but do not always tolerate such variations.  Failed grasps fail consistently.  
 
-The hands and the table are marked with fiducial markers, and their position and orientation are recorded for each grasp via a \emph{Kinect}. The objects are placed on the table in a known pose, and the grasps illustrated in Fig. \ref{hammer}, \ref{heinz_bottle} and \ref{spray} are performed. For every nominal grasp pose, the hand has been positioned manually on the desired configuration via the gravity compensation control of the \emph{Baxter} robot. A set of $6$ trials is performed for each grasp, and grasp scores are averaged over the attempts over three indices:
+The hands and the table are marked with fiducial markers, and their position and orientation are recorded for each grasp via a Microsoft Kinect camera. The objects are placed on the table in a known pose, and the grasps illustrated in Fig. \ref{hammer}, \ref{heinz_bottle} and \ref{spray} are performed. For every nominal grasp pose, the hand has been positioned manually on the desired configuration via the gravity compensation control of the \emph{Baxter} robot. A set of $6$ trials is performed for each grasp, and grasp scores are averaged over the attempts over three indices:
 
 \begin{table}[hbt]
    \begin{center}
@@ -421,22 +402,22 @@ The hands and the table are marked with fiducial markers, and their position and
    \hline
    Object   & Pose  & Effort &  Grasp Position  & Preshape \\
    \cline{1-5}
-   Hammer                   & P1        &   0.3 &   Grasp on Handle &   0   \\\hline
-   Hammer                   & P2        &   0.3 &   Grasp on CoG    &   0   \\\hline
-   Hammer                   & P3        &   0.3 &   Grasp on Head   &   0.5 \\\hline
-   Spray Bottle (no cap)    & P1        &   0.2 &   Low grasp (spay facing outside)     &   N/A \\\hline
-   Spray Bottle (no cap)    & P2        &   0.2 &   High grasp  (spay facing outside)   &   N/A \\\hline
-   Spray Bottle (no cap)    & P3        &   0.2 &   Low grasp  (spay facing inside)     &   N/A \\\hline
-   Spray Bottle (no cap)    & P4        &   0.2 &   High grasp (spay facing inside)             &   N/A \\\hline   
-   Spray Bottle (with cap)  & P1        &   0.2 &   High grasp      &   N/A \\\hline
-   Ketchup              & P1        &   0.3 &   Grasp cap       &   0.3 \\\hline
-   Ketchup              & P1        &   0.3 &   Grasp undercap ridge    &   0.3 \\\hline
-   Ketchup              & P2        &   0.3 &   Grasp lateral ridge     &   0.3 \\\hline
-   Ketchup              & P3        &   0.3 &   Grasp lateral ridge     &   0.3 \\\hline
-   Ketchup              & P4        &   0.3 &   Grasp above lateral ridge       &   0.3 \\\hline
-   Barilla Box              & P1        &   N/A &   Grasp on the top, parallel      &   N/A \\\hline
-   Barilla Box              & P2        &   N/A &   Grasp on the top, tilt along yaw    &   N/A \\\hline
-   Barilla Box              & P3        &   N/A &   Grasp on the side       &   N/A \\\hline   
+   Hammer					& P1   		&	0.3	& 	Handle	& 	0   \\\hline
+   Hammer					& P2   		&	0.3	& 	CoG	& 	0   \\\hline
+   Hammer					& P3   		&	0.3	& 	Head	& 	0.5 \\\hline
+   Spray Bottle (no cap)	& P1   		&	0.2	&   Low (spray facing outside) 	&	0	\\\hline
+   Spray Bottle (no cap)	& P2   		&	0.2	&   High  (spray facing outside)  	&	0	\\\hline
+   Spray Bottle (no cap)	& P3   		&	0.2	&   Low (spray facing inside)  	&	0	\\\hline
+   Spray Bottle (no cap)	& P4   		&	0.2	&   High (spray facing inside)    			&	0	\\\hline   
+   Spray Bottle (with cap)	& P1   		&	0.2	&   High   	&	0	\\\hline
+   %Ketchup				& P1   		&	0.3	&   Cap   	&	1.5	\\\hline %got experiment, but not simulation
+   Ketchup				& P1   		&	0.3	&   Cap   	&	1.5	\\\hline
+   Ketchup				& P2   		&	0.3	&   Under cap ridge   	&	1.3	\\\hline
+   Ketchup				& P3   		&	0.2	&   Lateral ridge   	&	0	\\\hline
+   Ketchup				& P4   		&	0.2	&   Above lateral ridge   	&	0	\\\hline
+   Pasta Box				& P1   		&	N/A	&   Top, parallel   	&   N/A	\\\hline
+   Pasta Box				& P2   		&	N/A	&   Top, tilt along yaw   	&	N/A \\\hline
+   Pasta Box				& P3   		&	N/A	&   Side   	&   N/A	\\\hline   
    
    \end{tabular}
    \end{center}
@@ -447,20 +428,20 @@ The hands and the table are marked with fiducial markers, and their position and
 
 \begin{figure}[!hbt]
 \begin{center}
-%        \includegraphics[width=0.6\columnwidth]     {images/ssoch/meshes}
+        \includegraphics[width=0.6\columnwidth]     {images/ssoch/meshes}
         \includegraphics[width=0.95\columnwidth]     {images/ssoch/objects}
         \caption{The 3d laser range scans are reconstructed using Poisson surface reconstruction, and the number of faces of the mesh is then reduced using Quadric Edge Collapse Decimation. All the meshes have a number of faces between $8000$ and $12000$. As a last step, the bottom of the object is manually cropped to a flat surface.}
         \label{meshes}
         \end{center}
 \end{figure}
 
-%\begin{figure}[!hbt]
-%\begin{center}
-%        \includegraphics[width=0.95\columnwidth]     {images/ssoch/objects}
-%        \caption{comparison side by side of the real objects and the 3d scanned}
-%        \label{objects}
-%        \end{center}
-%\end{figure}
+\begin{figure}[!hbt]
+\begin{center}
+        \includegraphics[width=0.95\columnwidth]     {images/ssoch/objects}
+        \caption{comparison side by side of the real objects and the 3d scanned}
+        \label{objects}
+        \end{center}
+\end{figure}
 
 
 
@@ -479,7 +460,7 @@ The hands and the table are marked with fiducial markers, and their position and
         \end{center}
 \end{figure}
 
-The grasp procedure for the \emph{Reflex Hand} consists in closing all the fingers continuously till a certain effort threshold is met, at which point the grasp is stopped. For the \emph{Soft Hand}, the fingers all closed to the limit of the available actuator, and the torque will be automatically limited according to the nominal actuator torque limits. To check if the grasp is successful, the object is then  raised. If successfully raised, the robustness of the grasp is checked by shaking the gripper by hand.
+The grasp procedure for the \emph{Reflex Hand} consists in simultaneously closing each finger until the motor's effort threshold is met, at which point the finger is stopped. For the \emph{Soft Hand}, the fingers close simultaneously until the nominal torque limit of the single actuator is reached. To check if the grasp is successful, the object is then raised. If successfully raised, the robustness of the grasp is checked by shaking the gripper by hand.
 
 
 \begin{figure}[!hbt]
@@ -493,19 +474,21 @@ The grasp procedure for the \emph{Reflex Hand} consists in closing all the finge
 
 The grasp is then performed in simulation.
 We simulate the \emph{Reflex Hand} using \emph{Klamp't} v$0.6.2$, and the \emph{Soft Hand} using \emph{Gazebo} v$4.0$ with a preliminary version of the \emph{Soft Hand plugin}~\cite{Rosales15SHP}.
-The \emph{Gazebo} simulator is tested against the patch \cite{Rocchi15GBP} where \emph{BLEM} is used. In Gazebo, the simple contact sorting algorithm is used for contact filtering. The \emph{Klamp't} simulator is tested with  \emph{BLEM} against the default in Open Dynamics Engine \emph{OPCODE}.  In Klamp't examples, $k$-means clustering is used with a maximum of 20 contacts.
+The \emph{Gazebo} simulator is tested against our patch \cite{Rocchi15GBP} where \emph{BLEM} is used. In Gazebo, the simple contact sorting algorithm is used for contact filtering. The \emph{Klamp't} simulator is tested with  \emph{BLEM} against the default in Open Dynamics Engine \emph{OPCODE}.  In Klamp't examples, we use $k$-means clustering with a maximum of 20 contacts.
+
+The robot's motor parameters, tendon Baumgarte stability constants, and friction parameters were tuned by hand so that the hands would move qualitatively similarly to the real hands, and to be stable both in free space motion and while grasping on a spherical object.  No quantitative calibration procedure was performed.
 
 
 
 \begin{figure*}[!!hbt]
 \begin{center}
-{ \includegraphics[width=0.30\columnwidth]     {images/ssoch/fig/hammer_P1}    \label{hammer_P1}}
-{ \includegraphics[width=0.30\columnwidth]     {images/ssoch/fig/hammer_p1_1}    \label{hammer_p1_1}}
-{ \includegraphics[width=0.30\columnwidth]     {images/ssoch/fig/hammer_P2}    \label{hammer_P2}}
-{ \includegraphics[width=0.30\columnwidth]     {images/ssoch/fig/hammer_p2_1}    \label{hammer_p2_1}}
-{ \includegraphics[width=0.30\columnwidth]     {images/ssoch/fig/hammer_P3}    \label{hammer_P3}}
-{ \includegraphics[width=0.30\columnwidth]     {images/ssoch/fig/hammer_p3_1}    \label{hammer_p3_1}}
-        \caption{Comparison between simulation and experiment: \emph{hammer-P1},\emph{hammer-P2}, \emph{hammer-P3}}
+{\includegraphics[width=0.225\columnwidth]     {images/ssoch/fig/hammer_P1}\label{hammer_P1}}%
+{\includegraphics[width=0.225\columnwidth]     {images/ssoch/fig/hammer_p1_1}\label{hammer_p1_1}}
+{\includegraphics[width=0.225\columnwidth]     {images/ssoch/fig/hammer_P2}\label{hammer_P2}}%
+{\includegraphics[width=0.225\columnwidth]     {images/ssoch/fig/hammer_p2_1}\label{hammer_p2_1}}
+{\includegraphics[width=0.225\columnwidth]     {images/ssoch/fig/hammer_P3}\label{hammer_P3}}%
+{\includegraphics[width=0.225\columnwidth]     {images/ssoch/fig/hammer_p3_1}\label{hammer_p3_1}}
+        \caption{Comparison between simulation and experiment: \emph{Hammer-P1}, \emph{Hammer-P2}, \emph{Hammer-P3}}
         \label{hammer}
         \end{center}
 \end{figure*}
@@ -513,17 +496,17 @@ The \emph{Gazebo} simulator is tested against the patch \cite{Rocchi15GBP} where
 
 \begin{figure*}[!!hbt]
 \begin{center}
-{ \includegraphics[width=0.18\textwidth]     {images/ssoch/fig/heinz_P1}    \label{heinz_P1}}
-{ \includegraphics[width=0.18\textwidth]     {images/ssoch/fig/heinz_P2}    \label{heinz_P2}}
-{ \includegraphics[width=0.18\textwidth]     {images/ssoch/fig/heinz_P3}    \label{heinz_P3}}
-{ \includegraphics[width=0.18\textwidth]     {images/ssoch/fig/heinz_P4}    \label{heinz_P4}}
-{ \includegraphics[width=0.18\textwidth]     {images/ssoch/fig/heinz_P5}    \label{heinz_P5}}
-{ \includegraphics[width=0.18\textwidth]    {images/ssoch/fig/heinz_p1_1}    \label{heinz_p1_1}}
-{ \includegraphics[width=0.18\textwidth]    {images/ssoch/fig/heinz_p2_1}    \label{heinz_p2_1}}
-{ \includegraphics[width=0.18\textwidth]    {images/ssoch/fig/heinz_p3_1}    \label{heinz_p3_1}}
-{ \includegraphics[width=0.18\textwidth]    {images/ssoch/fig/heinz_p4_1}    \label{heinz_p4_1}}
-{ \includegraphics[width=0.18\textwidth]    {images/ssoch/fig/heinz_p5_1}    \label{heinz_p5_1}}
-        \caption{Comparison between simulation and experiment - ketchup bottle: \emph{ketchup-P1}, \emph{Ketchup-P2}, \emph{Ketchup-P3}, \emph{Ketchup-P4}, \emph{Ketchup-P5}}
+{\includegraphics[width=0.11\textwidth]     {images/ssoch/fig/heinz_P1}\label{heinz_P1}}%
+{\includegraphics[width=0.11\textwidth]    {images/ssoch/fig/heinz_p1_1}\label{heinz_p1_1}}
+{\includegraphics[width=0.11\textwidth]{images/ssoch/fig/heinz_P2}\label{heinz_P2}}%
+{\includegraphics[width=0.11\textwidth]{images/ssoch/fig/heinz_p2_1}\label{heinz_p2_1}}
+%{\includegraphics[width=0.09\textwidth]{images/ssoch/fig/heinz_P3}\label{heinz_P3}}%
+%{\includegraphics[width=0.09\textwidth]    {images/ssoch/fig/heinz_p3_1}\label{heinz_p3_1}}
+{ \includegraphics[width=0.11\textwidth]     {images/ssoch/fig/heinz_P4}\label{heinz_P4}}%
+{\includegraphics[width=0.11\textwidth]{images/ssoch/fig/heinz_p4_1}\label{heinz_p4_1}}
+{\includegraphics[width=0.11\textwidth]{images/ssoch/fig/heinz_P5}\label{heinz_P5}}%
+{\includegraphics[width=0.11\textwidth]{images/ssoch/fig/heinz_p5_1}\label{heinz_p5_1}}
+        \caption{Comparison between simulation and experiment: \emph{Ketchup-P1}, \emph{Ketchup-P2}, \emph{Ketchup-P3}, \emph{Ketchup-P4}}
         \label{heinz_bottle}
         \end{center}
 \end{figure*}
@@ -531,31 +514,43 @@ The \emph{Gazebo} simulator is tested against the patch \cite{Rocchi15GBP} where
 
 \begin{figure*}[!!hbt]
 \begin{center}
-{ \includegraphics[width=0.18\textwidth]     {images/ssoch/fig/spray_full_P1}    \label{spray_full_P1}}
-{ \includegraphics[width=0.18\textwidth]     {images/ssoch/fig/spray_P1}    \label{spray_P1}}
-{ \includegraphics[width=0.18\textwidth]     {images/ssoch/fig/spray_P2}    \label{spray_P2}}
-{ \includegraphics[width=0.18\textwidth]     {images/ssoch/fig/spray_P3}    \label{spray_P3}}
-{ \includegraphics[width=0.18\textwidth]     {images/ssoch/fig/spray_P4}    \label{spray_P4}}
-{ \includegraphics[width=0.18\textwidth]     {images/ssoch/fig/spray_full_p1}    \label{spray_full_p1}}
-{ \includegraphics[width=0.18\textwidth]     {images/ssoch/fig/spray_p1}    \label{spray_p1}}
-{ \includegraphics[width=0.18\textwidth]     {images/ssoch/fig/spray_p2}    \label{spray_p2}}
-{ \includegraphics[width=0.18\textwidth]     {images/ssoch/fig/spray_p3}    \label{spray_p3}}
-{ \includegraphics[width=0.18\textwidth]     {images/ssoch/fig/spray_p4}    \label{spray_p4}}
+{\includegraphics[width=0.09\textwidth]     {images/ssoch/fig/spray_full_P1}\label{spray_full_P1}}%
+{\includegraphics[width=0.09\textwidth]     {images/ssoch/fig/spray_full_p1}\label{spray_full_p1}}
+{\includegraphics[width=0.09\textwidth]{images/ssoch/fig/spray_P1}\label{spray_P1}}%
+{\includegraphics[width=0.09\textwidth]{images/ssoch/fig/spray_p1}\label{spray_p1}}
+{\includegraphics[width=0.09\textwidth]{images/ssoch/fig/spray_P2}\label{spray_P2}}%
+{\includegraphics[width=0.09\textwidth]{images/ssoch/fig/spray_p2}\label{spray_p2}}
+{\includegraphics[width=0.09\textwidth]{images/ssoch/fig/spray_P3}\label{spray_P3}}%
+{\includegraphics[width=0.09\textwidth]{images/ssoch/fig/spray_p3}\label{spray_p3}}
+{\includegraphics[width=0.09\textwidth]{images/ssoch/fig/spray_P4}\label{spray_P4}}%
+{\includegraphics[width=0.09\textwidth]{images/ssoch/fig/spray_p4}\label{spray_p4}}
         \caption{Comparison between simulation and experiment: \emph{Spray Bottle (with cap)}, \emph{Spray Bottle (no cap) - P1}, \emph{Spray Bottle (no cap) - P2}, \emph{Spray Bottle (no cap) - P3}, \emph{Spray Bottle (no cap) - P4}}
         \label{spray}
         \end{center}
 \end{figure*}
 
 
+\begin{figure*}[!!hbt]
+\begin{center}
+{\includegraphics[height=0.24\columnwidth]     {images/ssoch/fig/kh_changes/softhand_p1_simu01}}%
+{\includegraphics[height=0.24\columnwidth]     {images/ssoch/fig/kh_changes/softhand_p1_grasp}}
+{\includegraphics[height=0.24\columnwidth]     {images/ssoch/fig/kh_changes/softhand_p2_simu01}}%
+{\includegraphics[height=0.24\columnwidth]     {images/ssoch/fig/kh_changes/softhand_p2_grasp}}
+{\includegraphics[height=0.24\columnwidth]     {images/ssoch/fig/kh_changes/softhand_p3_simu01}}%
+{\includegraphics[height=0.24\columnwidth]     {images/ssoch/fig/kh_changes/softhand_p3_grasp}}
+        \caption{Comparison between simulation and experiment: {\em Pasta Box - P1}, {\em Pasta Box - P2}, and {\em Pasta Box - P3}.}
+        \label{pasta_box}
+        \end{center}
+\end{figure*}
 
 
-The simulated grasp pipeline is as follows:
+The simulation procedure is as follows:
 \begin{itemize}
 \item The object and hands are spawned in the pregrasp and preshape configuration,
-\item For the Soft Hand, the hand is closed maximally, for the Reflex Hand, a force threshold technique equivalent to the one performed on the physical hardware is used \todo{also on paper fix: explain which technique was used} to arrest the hand closure (the object will move accordingly),
-\item The hands tries to lift the object,
+\item As in the physical hardware, the hands are closed until an actuator force threshold is reached.
+\item The hand is lifted by 10cm,
 \item The grasp is perturbed by commanding jerking movements of the wrist,
-\item Finally the grasp opens to drop the object.
+\item Finally the hand opens to drop the object.
 \end{itemize}
 
 \begin{figure*}
@@ -563,43 +558,59 @@ The simulated grasp pipeline is as follows:
 \includegraphics[width=0.32\textwidth]{images/ssoch/scf_metrics.pdf}
 \includegraphics[width=0.32\textwidth]{images/ssoch/scp_metrics.pdf}
 \includegraphics[width=0.32\textwidth]{images/ssoch/scn_metrics.pdf}
-\caption{Metrics $S_{cf}$, $S_{cp}$, and $S_{cn}$ over the simulated grasp set. }
+\caption{Metrics $S_{cf}$, $S_{cp}$, and $S_{cn}$ over the simulated grasp set. Lower numbers are better.}
 \label{fig:AllMetrics}
 \end{figure*}
 
-Fig.~\ref{fig:AllMetrics} illustrates the results of the grasp stability indices between BLEM and OPCODE contact generation. It can be observed BLEM leads to higher stability in general, most strikingly for the contact normal metric.
+Fig.~\ref{fig:AllMetrics} illustrates the results of the contact stability indices between BLEM and OPCODE contact generation. It can be observed BLEM leads to higher stability in general, most strikingly for the contact normal metric.
 
 \begin{table}[hbt]
    \begin{center}
    \begin{tabular}{| c | c  c | c c |}
    \hline
-         & \multicolumn{2}{c}{Grasped} & \multicolumn{2}{c}{Dropped} \\
-   Grasp & BLEM & OPCODE & BLEM & OPCODE\\
+   Grasp & Grasped & Dropped & Grasped & Dropped\\
+   \hline
+    {\bf ReFlex} & \multicolumn{2}{c|}{{\bf ODE / BLEM}} & \multicolumn{2}{c|}{{\bf ODE / OPCODE}} \\
    \cline{1-5}
-   Hammer 1 & Y & Y & Y & {\bf N} \\
-   Hammer 2 & Y & Y & Y & Y \\
-   Hammer 3 & Y & {\bf N} & Y & {\bf N} \\
-   Spray 1  & Y & Y & Y & {\bf N} \\
-   Spray 2  & Y & Y & Y & {\bf N} \\
-   Spray 3  & Y & Y & Y & Y \\
-   Spray 4  & Y & Y & Y & {\bf N} \\
-   Spray Full 1 & Y & Y & Y & Y \\
-   Ketchup 1    & Y & Y & {\bf N} & -- \\
-   Ketchup 2    & Y & Y & {\bf N} & -- \\
-   Ketchup 3    & Y & Y & Y & {\bf N} \\
-   Ketchup 4    & Y & Y & Y & {\bf N} 
-   \\\hline
+   Hammer 1	    & Y & Y & Y & {\bf N} \\
+   Hammer 2	    & Y & Y & Y & Y \\
+   Hammer 3	    & Y & Y & Y & {\bf N} \\
+   ~Spray 1+	& Y & Y & Y & {\bf N} \\
+   ~Spray 2+	& Y & Y & Y & {\bf N} \\
+   ~Spray 3*	& Y & Y & Y & Y \\
+   Spray 4	& Y & Y & Y & {\bf N} \\
+   Spray Full 1	& Y & Y & Y & Y \\
+   ~Ketchup 1*	& Y & Y & {\bf N} & -- \\
+   Ketchup 2	& Y & Y & {\bf N} & -- \\
+   Ketchup 3	& Y & Y & Y & {\bf N} \\
+   Ketchup 4	& Y & Y & Y & {\bf N} \\
+   \hline
+   {\bf SoftHand} & \multicolumn{2}{c|}{{\bf Gazebo / BLEM}} & \multicolumn{2}{c|}{{\bf Gazebo / OPCODE}} \\
+   \hline
+   Pasta Box 1  & Y & Y & X & Y \\
+   Pasta Box 2+ & Y & Y & X & Y \\
+   Pasta Box 3* & N & -- & N  & -- \\
+   \hline
    \end{tabular}
    \end{center}
-   \caption{Success rates of ReFlex grasps in simulation.}
+   \caption{Success rates of ReFlex grasps (top) and SoftHand grasps (bottom) in simulation.  Asterisks indicate failed grasps on physical experiments. The plus sign indicates non robust grasps on physical experiments.  An entry of X  indicates variability for the same initial conditions.}
    \label{table:GraspSuccess}
 \end{table}
 
-Tab.~\ref{table:GraspSuccess} illustrates the results of simulations. 13/13 objects were grasped by BLEM and 11/13 were grasped by OPCODE. In all successful grasps, the object was securely held through perturbations.  In the two failure cases, OPCODE led the robot to penetrate completely through the object without contact.  
+Tab.~\ref{table:GraspSuccess} illustrates the results of simulations. 12/12 successful grasps were reliably grasped by BLEM and 9/12 were grasped by OPCODE. In all successful grasps, the object was securely held through perturbations.  In the two ODE/OPCODE failure cases, the hand  penetrated completely through the object without contact.  In the two Gazebo/OPCODE unreliable grasp cases, we observed  nondeterminism in the simulator which caused the grasp to fail in approximately 1/3 of simulation trials, even with the exact same initial conditions.
 
-It can also be seen that OPCODE leads to significant interpenetration artifacts, in which the object gets ``stuck'' on the robot's finger and cannot be let go.  This same artifact happened to a lesser extent in one BLEM trial, where the boundary layer was penetrated leading the method to resort to OPCODE's collision detection.
+Perhaps more worrisome is the result that ODE/OPCODE did not successfully release the grasped object in 7/9 successful grasps.  This is explained by major interpenetration artifacts, in which the object gets ``stuck'' on the robot's finger and cannot be let go (Fig.~\ref{fig:OPCODEArtifact}. 
 
-These results suggest that although stable simulation is crucial for obtaining reasonable predictions, it is still challenging for simulation to accurately discern the boundary of feasible/infeasible grasps without considerable tuning.  The large number of grasp successes likely indicates an improperly calibrated coefficient of friction or absolute grasp force. An interesting area for future work would be to automatically tune the robot model to obtain a match with physical experiments.
+\begin{figure}
+    \centering
+    \includegraphics[width=0.25\textwidth]{opcode-artifact.png}
+    \caption{An artifact exhibited in OPCODE causing the object to penetrate and then ``stick'' to the robot's finger.}
+    \label{fig:OPCODEArtifact}
+\end{figure}
+
+BLEM did not successfully predict 2/3 failed grasps. This likely indicates an improperly calibrated coefficient of friction or absolute grasp force.  This suggests that although stable simulation is crucial for obtaining reasonable predictions, it is still challenging for simulation to accurately discern the boundary of feasible/infeasible grasps without considerable tuning.   An interesting area for future work would be to automatically tune the robot model to obtain a match with physical experiments.
+
+Lastly, computation times during grasp for the \emph{Klamp't} case were similar between BLEM, with $~2.7$ms and OPCODE, with $\sim2.9$ms for each millisecond of simulated time. For Gazebo, the experimental BLEM patch resulted in computation times of $\sim2.4$ms against $\sim1.6$ms of OPCODE for each millisecond of simulated time. All measurements were taken on an Intel Core i5-4460 CPU @3.2HGz.
 
 \subsection{Conclusions}
 A series of simulation stability and fidelity criterion have been established. They have been tested on two different compliant and underactuated hardware platforms, the \emph{RightHand Robotics' Reflex Hand} and the \emph{Pisa/IIT SoftHand}. A set of grasps has been performed on the physical hardware using $4$ different objects of different shapes and characteristics, in different grasping scenarios, and then validated using \emph{Klamp't} and \emph{Gazebo}, using different techniques for \emph{contact clustering} and \emph{contact generation}. The experimental results show that  simulations performed with the \emph{BLEM} \emph{contact generation} algorithm and the \emph{k-means clustering} contact filtering algorithm have the highest stability indices, and also exhibit the fewest artifacts.
