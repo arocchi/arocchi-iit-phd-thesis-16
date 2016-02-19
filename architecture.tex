@@ -11,17 +11,18 @@ The GIT distributed source code managament system has been used, with gitlab use
 
 \section{Component Model}
 The compoment model developed is based on the yarp framework and named GYM.
-It contains a logging and configuration mechanism, paramHelper, for which a UI has been developed for online gain tuning. GYM provides facilities for automatic module creation. Every module is composed of a low frequency thread that accepts high level management commands, and a high frequency thread that takes care of the control and obtains sensor feedback from the robot and task level commands by the user.
+It contains a logging and configuration mechanism, \emph{paramHelper}, for which a UI has been developed for online gain tuning. GYM provides facilities for automatic module creation. Every module is composed of a low frequency thread that accepts high level management commands, and a high frequency thread that takes care of the control and obtains sensor feedback from the robot and task level commands by the user.
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=0.7\textwidth]{gfx/GYM.eps}
+\caption{Structure and components of a module written using GYM}
+\label{gym}
+\end{figure*}
 
 \section{Simulating and Controlling Compliant Robots}
 The simulator is a fundamental part of the framework and the robot software development cycle as the first step to validate algorithms, thus minimizing the risks of hardware failures.
 In these frameworks, the \emph{simulator} is a module that represents the real robot at the interface level (Figure \ref{yarp_simulation}). Such simulator module accepts control input (desired joint torques, desired joint position, ...) and outputs sensory feedback (cameras, joint positions, ...) from the simulated world. These simulators usually allow to have the human in-the-loop permitting to train a human operator. The most important aspect is that they allow to develop modules that directly will work in the real robot without any need to rewrite code. In fact, when the real robot is used, there is a module that replaces the simulator by providing the same hardware interfaces. 
-
-\begin{figure}[h!]
-  \centering
-    \includegraphics[width=0.475\textwidth]{images/coman_icub_gazebo.jpg}
-    \caption{COMAN and iCub interacting inside a Gazebo simulation of a kitchen. Blue dots represent contact points.}\label{coman_icub_gazebo}
-\end{figure}
 
 With these concepts in mind we decided to extend one of the most known robotics simulator, Gazebo (\cite{koenig2004design}), to be compatible with one of the most used robotics framework, YARP (Figure \ref{coman_icub_gazebo}), developed in the Italian Institute of Technology. 
 YARP is supported by the iCub simulator (iCubSim, \cite{Tikhanoff:2008:OSC:1774674.1774684}) that is dedicated to a specific platform. The needs of a more generic tool for simulating different robots rise up. 
@@ -54,81 +55,10 @@ The gazebo\_yarp\_plugins is made of:
     \item Gazebo plugins that instantiate YARP device drivers,
     \item YARP device drivers that wrap Gazebo functionalities inside the YARP device interfaces.
 \end{itemize}
-The plugins/devices already implemented are the \emph{Control Board}, \emph{6-axis Force Torque sensor}, \emph{Inertial Measurement Unit} (IMU) and a \emph{Clock} plugin used for synchronization.
-The first three plugins are directly related to the simulated objects and sensors, while the last one is a system plugin that synchronizes all the other YARP modules with the simulation time. 
 
-\begin{figure}
-        \centering
-        \begin{subfigure}[b]{0.475\textwidth}
-                \includegraphics[width=\textwidth]{images/coman_ft_a.eps}
-                \caption{Gazebo interface with COMAN}
-                \label{yarp_simulation_coman_a}
-        \end{subfigure}%
-        \\
-        \begin{subfigure}[b]{0.475\textwidth}
-                \includegraphics[width=\textwidth]{images/coman_ft_b.eps}
-                \caption{A yarpscope showing on-line the forces and the torques at each Force/Torque sensor}
-                \label{yarp_simulation_coman_b}
-        \end{subfigure}
-        \\
-        \begin{subfigure}[b]{0.475\textwidth}
-                \includegraphics[width=\textwidth]{images/coman_ft_c.eps}
-                \caption{Plot of forces measured at the simulated Force/Torque sensor placed on the right arm. Forces along x,y and z are respectively in red, green and blue}
-                \label{yarp_simulation_coman_c}
-        \end{subfigure}
-        \\
-        \begin{subfigure}[b]{0.475\textwidth}
-                \includegraphics[width=\textwidth]{images/coman_ft_d.eps}
-                \caption{Plot of torques measured at the simulated Force/Torque sensor placed on the right arm. Torques along x,y and z are respectively in red, green and blue}
-                \label{yarp_simulation_coman_d}
-        \end{subfigure}
-        \caption{A Gazebo simulation running COMAN interacting with debris}\label{force_torque}
-\end{figure}
+\subsection{Robot and Simulation Simulation Description Formats: URDF, SRDF, SDF}
+Gazebo uses an XML-style format, Simulation Description Format (SDF), to save and load information about a simulated world or model. An SDF encapsulates all the necessary information for a simulation including the robot models, physics engin parameters, and plugins to be loaded (e.g. sensors plugins).
 
-\subsection{Control Board}
-The Control Board plugin allows to control the robot using YARP Interfaces, it is implemented as a Gazebo Model plugin. Every control board allows the user to control one or more joints (a kinematic chain such as the arm or leg, etc.) as specified in a configuration file. For each controlled joint the control board opens different interfaces, permitting the use of different type of controllers for each joint. Such interfaces include position control, torque control, encoders reading, torque measurement and joint impedance control. Usually the number of instantiated control boards is equal to the number of kinematic chains. Each control board, during every cycle of simulation, reads position, velocity and torque values from the simulated joints and sends desired joints position or torques to the simulator. The values read from the simulator are broadcasted through YARP interfaces in the YARP network, in a similar way the desired joint values come from YARP interfaces (Figure \ref{control_board}). The following YARP interfaces are used to control the robot.
-\begin{itemize}
-\item \textbf{IPositionControl}: a position control with a linear trajectory generator considering a max joint speed
-\item \textbf{IPositionDirect}: a position control using Gazebo position PIDs
-\item \textbf{ITorqueControl}: a perfect torque follower
-\item \textbf{IImpedanceControl}: a joint impedance control with the following law
-\begin{equation}
-    \tau_d = -P_d(q-q_d) - D_d\dot{q} + \tau_{offset}
-\end{equation}
-where $q_d$ is the desired equilibrium position, $P_d$ is the desired joint stiffness and $D_d$ is the desired joint damping. $\tau_{offset}$ is an extra signal that can be used for gravity compensation or inverse dynamics control.
-\end{itemize}
-Furthermore, the Control Board implements the \textbf{IControlMode} interface that allows to change the type of controller online. All these interfaces are also available on the robot and they have the same behaviour.
-
-\begin{figure}[h!]
-  \centering
-    \includegraphics[width=0.5\textwidth]{images/control_board.eps}
-    \caption{Control Board plugin for the left\_arm kinematic chain. yarp::IPositionControl interface has a method positionMove() that can be used to set joint values inside a YARP module. The plugin implements such interface by calling the Publish() method inside the Gazebo API to move the simulated joints at each OnUpdate().}\label{control_board}
-\end{figure}
-
-\subsection{6-axis Force/Torque sensor}
-A Force/Torque sensor measures a wrench in the robot structure (Figure \ref{force_torque}). The sensor, at the time of writing, is simulated in Gazebo as if it was attached to the reference frame associated to a joint. On the YARP side, the reading of a generic sensor is implemented as a \textbf{IAnalogSensor} interface (Figure \ref{ianalog_force_torque}). The broadcasted data is a vector of six numbers representing the forces and the torques applied on that reference frame.
-
-\subsection{IMU sensor}
-An IMU measures velocity, orientation, and gravitational forces, using a combination of accelerometers and gyroscopes, of the link where it is placed. It is also possible to add white Gaussian noise on the measurement (Figure \ref{icub_inertial}).
-Similar to the Force/Torque sensor, it is implemented as a \textbf{IAnalogSensor} interface.
-
-\begin{figure}[h!]
-  \centering
-    \includegraphics[width=0.475\textwidth]{images/ianalog_force_torque.eps}
-    \caption{The Force/Torque sensor in the left arm is implemented as a YARP IAnalogSensor interface. At every step the internal state of the plugin is updated with the last readings of forces and torques from the simulation.}\label{ianalog_force_torque}
-\end{figure}
-
-\subsection{Simulation Description Format (SDF)}
-Gazebo uses an XML-style format, Simulation Description Format (SDF), to save and load information about a simulated world or model. An SDF encapsulates all the necessary information for a simulation such as:
-\begin{itemize}
-\item \textbf{Scene}: ambient lighting, sky properties, shadows.
-\item \textbf{Physics}: gravity, time step, physics engine.
-\item \textbf{Models}: collection of links, collision objects, joints, and sensors.
-\item \textbf{Lights}: point, spot, and directional light sources.
-\item \textbf{Plugins}: world, model, sensor, and system plugins.
-\end{itemize}
-Our Control Board, Force Torque sensor and IMU plugins are included inside the SDF file that describes our robots. For our humanoid bipedal robot, COMAN, we have five Control Board plugins (one for each kinematic chain), four Force/Torque sensor plugins (two in the legs and two in the arms) and one IMU sensor plugin (placed on the back of the waist).
-The clock plugin is loaded trough a command line parameter when the simulator is started.
 
 \section{Whole-Body Control}
 \begin{wrapfigure}{r}{0.35\textwidth}
@@ -182,6 +112,7 @@ Through \emph{YARP} it's possible to change the parameters of all the tasks, inc
 
 \subsubsection{iDynUtils}
 \label{sec:idynutils}
+\todo{add a section about RobotUtils}
 
 As a support library to the \textbf{OpenSoT} framework we developed a whole-body control library named \emph{iDynUtils}.
 This library is responsible for loading the model of the robot via the \emph{iDynTree}\cite{Nori2015-zb,Nori2015-db} library.
@@ -305,6 +236,15 @@ The success of the action will be determined according to the settings of the pr
    \caption{Constraints and bounds. Transforming unilateral constraints and bounds from upper bounds to lower bounds is trivial and therefore not included in the table}
    \label{table:previewer_constants}
 \end{table}
+
+\paragraph{Logging and Plotting}
+\label{par:logging-plotting}
+YARP provides a functionality for plotting and logging signals, such as joint velocities, joint torques and force/torque sensor readings.
+The same can be said about ROS, and since the software architecture used by the WALKMAN team comprised a mix between the two middlewares, both could be used to store and visualize crucial data during robot operation. Still, the facilities these middlewares provide expect developers to \emph{publish} all the data that needs to be stored/visualized, resulting in a large overhead which often can become unbearable by the onboard control pc, especially when, together with the basic sensor data, we are interesting in logging and visualizing statistics about the control algorithm performance.
+For this reason, a toolkit to easily store and plot data has been implemented in OpenSoT.
+The logging and ploting framework is based on the idea of \emph{flushers} and \emph{plotters}: the \emph{logger} is created by stacking a list of flushers, each of them taking care of serializing the data to be saved on a text file; finally, a plotter can be created that plots the saved data, a subset of the data, or the result of an operation executed on the stored data (such as norm, multiplication between compatible data fields and filtering), and in general a plot will consist of several plotters taking care of visualizing the data saved by a logger.
+The framework allows to automatically store and plot data relative to Tasks, Constraints, robot sensors data, and raw data (scalars, vectors, matrices); the user can easily write additional flushers and plotters for arbitrary complex data structures and can extend the basic flushers in order to save data using different data formats, or extend the basic plotters in older to plot using different plotting environments.
+At the time the flushers and the plotters all use python data and plotting funcionalities, allowing the plotters to work even on the control pc of the robot where \emph{Matlab} is not available.
 
 \section{Conclusions}
 While in previous section the theoretical foundations of the high level control framework we addressed, together with a large set of experiments, in this section the API, the software infrastructure and the utilities ecosystem has been addressed, with the intent of demonstrating the richness of features of our high level control scheme.
