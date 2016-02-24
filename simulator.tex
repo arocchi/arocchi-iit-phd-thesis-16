@@ -325,11 +325,11 @@ In \emph{contact sorting}, the contacts are first sorted according to the penetr
 \end{figure}
 
 
-\section{Contact stability metrics}
+\subsection{Contact stability metrics}
 
 In the following section are introduced the metrics used in this work for evaluating the stability of contact points and contact forces at a fine granularity during the simulation of grasping.  These metrics correspond to the position, normal, and force dimensions of point contact models used in classical grasp analysis, which forms the basis of most grasp planning techniques.
 
-\subsection{Contact Force Variation}
+\subsubsection{Contact Force Variation}
 
 At equilibrium, we expect the contact forces exerted on the objects to be as close to constant as possible. Our first measurement penalizes fluctuations and spikes in force at an (ostensible) equilibrium state. 
 
@@ -340,7 +340,7 @@ Over a span of time $t$ where the object should be held in equilibrium by the ph
 S_{cf} \equiv \frac{1}{|C|} \sum_{|i\in C|} \sqrt{\|Var[f_i(t)]\|_F} / E[||f_i(t)||].
 \end{equation}
 
-\subsection{Contact position and normal variation}
+\subsubsection{Contact position and normal variation}
 The second and third scores measure the stability of contact positions and normals during an equilibrium grasp.  A simulator generates a set of point contacts at location $x_1,\ldots,x_k$ and their corresponding normals $n_1,\ldots,n_k$ ($k$ varying by time step).  The scores measure the fluctuations of the average contact position $\hat{x}_i$ on body $i$ and average contact normal $\hat{n}_i$ over time (0 being best).
 
 The equations are as follows:
