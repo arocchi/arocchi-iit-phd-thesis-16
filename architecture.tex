@@ -1,24 +1,41 @@
-In this work we introduce the software API and tools of the \textbf{OpenSoT} framework. Moreover we show a large set of examples of high-level tasks as well as tests to evaluate the \textbf{OpenSoT}'s tasks and constraints. 
-This set of tests and examples demonstrate the performances of the library and the easiness of writing complex sets of tasks and constraints.
-This paper is a complement to the first part where the theoretical foundation of the frameworks were presented. 
+\externaldocument{simulator}
+In this section details about the software architecture used by the COMAN and WALKMAN robot is introduced. In particular, this details the engineering efforts undertaken in view of the DRC competition in the software and control side. 
+These details include considerations about control algorithms on the simulated vs physical robot, the software API and tools of the \textbf{OpenSoT} framework and in general for middle to high level control, and observations about the global humanoid architecture with a particular attention to the practical details required to produce robust incremental improvements in medium-sized teams. We also show a large set of examples of high-level task implementations as well as tests to evaluate the tooling against regressions, and in particular to test \textbf{OpenSoT}'s tasks, constraints and stacks (the highest level layer of the architecture which is automatically tested).
+This set of tests and examples demonstrate the performances of the architecture and the easiness of writing complex sets of tasks and constraints in the OpenSoT framework.
 
 \section{Development Pipeline}
-Part of the work in developing the hardware and software for the DRC competition entry of the WALKMAN robot involved organizing the efforts of a big team that needed to work under high pressure and deliver results in a very short amount of time. During one year and a half, a whole robot was built from scratch, together with a whole simulation framework, low level joint control, middleware for interfacing the low level with the high level control, high level component model and UI for teleoperation.
-Part of the work needed to feature such an achievement has involved adopting a build system.
-The \emph{YCM} framework developed by the iCub facility department in Istituto Italian di Tecnologia has been used for the WALKMAN project, and an optimal development flow has been designed for the large team. 
-The second fundamental aspect has been that of adopting a continuous build system and writing a very large set of unit and integration tests, especially for the core libraries and the high level control libraries.
-The GIT distributed source code managament system has been used, with gitlab used for hosting an environment for collaboration, issue-tracking and documentation sharing via its WIKI system.
+Part of the engineering work on the hardware and software for the DRC competition entry of the WALKMAN robot involved organizing the efforts of a big team working under high pressure and delivering results in a very short amount of time.
+During one year and a half, a whole robot has been built from scratch, together with a new simulator, low level joint control, a high level control framework, a software component model and UI for teleoperation.
+
+This work has been coordinated across IIT and two more universities in the consortium (Univerity of Pisa - UNIPI and Universit\`e Catholique de Louvain - UCL). Part of the work needed to feature such an achievement has involved adopting a shared development workflow, and in particular, an automated build system.
+
+The \emph{YCM} framework developed by the iCub facility department has been used for the WALKMAN project, which allows to automatically manage the build order, the automatic downloading, compilation and installation of dependencies and the management of versions for each separate module in the build, and integrates seamlessly with the ROS build system, either \emph{rosbuild} or \emph{catkin}.
+The system allows to automatically install all the dependencies (binary or from source), to download, compile and install all the external libraries and the DRC modules in less than an hour, with a list of around $60$ modules managed automatically. It allows to specify a profile (i.e. \emph{ROBOT} and \emph{SIMULATION} depending on the target location for the installation, be either a control computer or a development computer, where algorithms need to be tested in simulation - the different choice automatically sets up the environment to synchronize the algorithm's clock either with a wall clock or simulation clock \label{sec:simulation_clock}) and interest focus (allowing to automatically disable compilation of unneeded packages based on the user focus, be either control, sensing, robot model development, architecture and networking). The build system is well documented and provides a set of scripts that have been found to be of use to the team (e.g. setting up environment variables to use a remote simulation server, setting up a networked control architecture with a remote ROS or YARP master servers, install daemons to automatically install services useful for simulation servers or control computers, and advanced version management utilities which allow to bulk branch, tag/freeze, and analyze the version and changes on all the modules managed by the build system). Lastly, it allows for bulk version management via branching of the build system itself: in fact, the configuration file specifying the desired branch or tag to use for all the modules managed by the build system (\texttt{cmake/ProjectsTags.cmake}) is versioned itself. This allows to easily generate \emph{versions} for the whole system, i.e. freeze notable working versions,  such as a system used for a demo, or a system tuned with a certain network architecture, or with a certain version of the robot, or eventually even to manage codebases tuned for a partial robot build (as mentioned earlier, e.g. in the case for parallel development of lower-body and upper-body of a humanoid robot).
+A stripped-down version of the build system used for the DRC by the WALKMAN team is hosted online \cite{robotology-superbuild}, and is being used as a basis for other projects in the team. Its documentation is available \cite{robotology-superbuild-handbook} and is based on the original handbook developed for the team during the DRC.
+
+The second fundamental aspect related to streamlining development and increasing productivity has been that of adopting a development workflow based on a series of fundamental steps:
+\begin{itemize}
+ \item a very large set of unit and integration tests, especially for the core libraries and the high level control libraries. Regression testing has been a fundamental tool to quickly develop a consistent set of algorithms that evolved during time
+ \item a continuous build system
+ \item a shared GIT workflow with \emph{master}, \emph{devel} and \emph{feature} branches, plus branches for each sprint (a so-called Agile development practice), or so called \emph{sprint-week} that got merged at the end of each sprint
+\end{itemize}
+The GIT distributed source code managament system has been used on a self-hosted \emph{gitlab} environment, which seved also as a hub for managing collaboration, by providing features for issue-tracking, code reviewing and documentation sharing via its WIKI system.
 
 \section{Component Model}
-The compoment model developed is based on the yarp framework and named GYM.
-It contains a logging and configuration mechanism, \emph{paramHelper}, for which a UI has been developed for online gain tuning. GYM provides facilities for automatic module creation. Every module is composed of a low frequency thread that accepts high level management commands, and a high frequency thread that takes care of the control and obtains sensor feedback from the robot and task level commands by the user.
+In order to facilitate module development, a basic compoment model has been developed, the \emph{Generic Yarp Module} ( \emph{GYM}), based on the YARP framework.
+Quoting its webpage ~\cite{GYM}, \emph{the Generic YARP Module (GYM) is a component model to easily develop software modules for robotics leveraging the YARP ecosystem}.
+It makes use of the \emph{paramHelp}~\cite{paramHelp} library, which was designed to simplify the management of parameters of YARP modules and allows networked logging, configuration and (on-the-fly) reconfiguration. The library has been extended to automatically generate GUIs for online gain tuning. GYM also provides facilities for automatic module creation, were several templates (or skeleton) can be chosen, i.e. helper modules (for developing robotics tools), modules for robot control (for developing robotics control and sensing algorithm that need need to run periodically and with a fixed rate, and need to directly access a part or the entirety of the robot hardware) and generic modules (for developing robotics library that don't need to access directly the robot hardware but are still periodic, e.g. trajectory generators and state machines). 
 
 \begin{figure*}[!ht]
 \centering
 \includegraphics[width=0.7\textwidth]{images/GYM}
-\caption{Structure and components of a module written using GYM}
+\caption{structure of a GYM module}
 \label{gym}
 \end{figure*}
+
+Every module is composed of at least two threads.
+A low frequency thread accepts high level management commands to \texttt{start}, \texttt{stop}, \texttt{pause}, \texttt{resume} execution of a module (the \emph{switch} interface), gives information on the status of the module (the \emph{status} interface), and provides a set of commands related to the \emph{paramHelp} that allow to view, set and eventually store to disk all of the module's algorithms parameters. 
+Additionally, each module has a main thread that is specific to the kind of module to implement and is usually a high frequency thread that takes care of the control and obtains sensor feedback from the robot and task level commands by the user.
 
 \section{Simulating and Controlling Compliant Robots}
 The simulator is a fundamental part of the framework and the robot software development cycle as the first step to validate algorithms, thus minimizing the risks of hardware failures.
@@ -105,7 +122,7 @@ By writing proper task wrappers it's possible to encapsulate the API and export 
 \vspace{2 mm}
 \centering
 \includegraphics[width=0.7\textwidth]{images/software/hydra_tele_operation.eps}
-\caption{The HYDRA robot tele-operated in simulation. The kinematic structure of HYDRA is the following: 6 DoFs legs, 8 DoFs arms, 2 DoFs torso and 1 DoF neck}
+\caption{The HYDRA robot tele-operated in simulation.}
 \label{opensot_interactive_markers}
 \end{figure*}
 Through \emph{YARP} it's possible to change the parameters of all the tasks, including $\beta$ and $\W$, and to get and set the task reference when contemplated (e.g., Cartesian, CoM, postural).
@@ -226,26 +243,29 @@ The success of the action will be determined according to the settings of the pr
    \hline
    \textbf{Constant} & \textbf{Default Value} & \textbf{Meaning} \\\hline
    \cline{1-3}
-   \texttt{TRAJECTORIES\_EXPIRED\_SAFETY\_MARGIN}           & $1.5$   & \shortstack{when previewing for an infinite time, stop \\ \texttt{if t >= longest\_task\_duration * safety\_margin}} \\\hline
-   \texttt{UPDATE\_ERR\_STATS\_WINDOW\_SIZE\_IN\_SECS} & $0.1$    & \shortstack{set the time window of the moving average filter \\ for the error statistics} \\\hline
-   \texttt{PREVIEWER\_CHECK\_MAX\_RETRIES}                  & $3$     & if \texttt{solve()} fails, retry for a maximum of MAX\_RETRIES \\\hline
-   \texttt{TRAJ\_BINDING\_MAXIMUM\_ALLOWED\_ERR}           & $5\times10^{-2}$  & \shortstack{maximum allowed Cartesian error, in norm, \\ during task execution} \\\hline
-   \texttt{TRAJ\_BINDING\_CONVERGENCE\_TOLERANCE}           & $5\times10^{-4}$  & threshold value for Cartesian error norm convergence \\\hline
+   \footnotesize{\texttt{TRAJECTORIES\_EXPIRED\_SAFETY\_MARGIN}}           & $1.5$   & \shortstack{when previewing for an infinite time, stop \\ \footnotesize{\texttt{if t >= longest\_task\_duration * safety\_margin}}} \\\hline
+   \footnotesize{\texttt{UPDATE\_ERR\_STATS\_WINDOW\_SIZE\_IN\_SECS}} & $0.1$    & \shortstack{set the time window of the moving average filter \\ for the error statistics} \\\hline
+   \footnotesize{\texttt{PREVIEWER\_CHECK\_MAX\_RETRIES}}                  & $3$     & if \texttt{solve()} fails, retry for a maximum of \footnotesize{\texttt{MAX\_RETRIES}} \\\hline
+   \footnotesize{\texttt{TRAJ\_BINDING\_MAXIMUM\_ALLOWED\_ERR}}           & $5\times10^{-2}$  & \shortstack{maximum allowed Cartesian error, in norm, \\ during task execution} \\\hline
+   \footnotesize{\texttt{TRAJ\_BINDING\_CONVERGENCE\_TOLERANCE}}           & $5\times10^{-4}$  & threshold value for Cartesian error norm convergence \\\hline
    \end{tabular}
    \end{center}
-   \caption{Constraints and bounds. Transforming unilateral constraints and bounds from upper bounds to lower bounds is trivial and therefore not included in the table}
+   \caption{Previewer default configuration. Values used for previewing motions on an adult-sized humanoid robot.}
    \label{table:previewer_constants}
 \end{table}
 
 \paragraph{Logging and Plotting}
 \label{par:logging-plotting}
 YARP provides a functionality for plotting and logging signals, such as joint velocities, joint torques and force/torque sensor readings.
-The same can be said about ROS, and since the software architecture used by the WALKMAN team comprised a mix between the two middlewares, both could be used to store and visualize crucial data during robot operation. Still, the facilities these middlewares provide expect developers to \emph{publish} all the data that needs to be stored/visualized, resulting in a large overhead which often can become unbearable by the onboard control pc, especially when, together with the basic sensor data, we are interesting in logging and visualizing statistics about the control algorithm performance.
+The same can be said about ROS, and since the software architecture used by the WALKMAN team comprised a mix between the two middlewares, both could be used to store and visualize crucial data during robot operation. Still, the facilities these middlewares provide expect developers to \emph{publish} all the data that needs to be stored/visualized, resulting in a large overhead which often can become unbearable for continuous logging by the onboard control pc, especially when, together with the basic sensor data, we are interested in logging and visualizing statistics about the control algorithm performance.
+
 For this reason, a toolkit to easily store and plot data has been implemented in OpenSoT.
-The logging and ploting framework is based on the idea of \emph{flushers} and \emph{plotters}: the \emph{logger} is created by stacking a list of flushers, each of them taking care of serializing the data to be saved on a text file; finally, a plotter can be created that plots the saved data, a subset of the data, or the result of an operation executed on the stored data (such as norm, multiplication between compatible data fields and filtering), and in general a plot will consist of several plotters taking care of visualizing the data saved by a logger.
-The framework allows to automatically store and plot data relative to Tasks, Constraints, robot sensors data, and raw data (scalars, vectors, matrices); the user can easily write additional flushers and plotters for arbitrary complex data structures and can extend the basic flushers in order to save data using different data formats, or extend the basic plotters in older to plot using different plotting environments.
-At the time the flushers and the plotters all use python data and plotting funcionalities, allowing the plotters to work even on the control pc of the robot where \emph{Matlab} is not available.
+The logging and ploting framework is based on the idea of \emph{flushers} and \emph{plotters}. 
+The \emph{logger} is created by stacking a list of flushers, each of them taking care of serializing the data to be saved on a text file. Each flusher can be instantiated with additional information regarding the data that is storing, e.g. joint names and unit of measurements.
+A plotter can be created that plots the logged data, a subset of the data, or the result of an operation executed on the stored data (such as norm, multiplication between compatible data fields and filtering), and in general a plot will consist of several plotters taking care of visualizing the data saved by a logger. The plotter can make use of the semantic information about the data form the flushers, so that many aspects of plot generation can be automated, e.g. legend generation.
+The framework allows to automatically store and plot data relative to Tasks, Constraints, robot sensors data, and raw data (scalars, vectors, matrices); the user can easily write additional flushers and plotters for arbitrary complex data structures, extend the basic flushers in order to store data using different data formats, or extend the basic plotters in order to plot using different plotting environments.
+At the time the flushers and the plotters all use python data and plotting functionalities, allowing the plotters to work even on the control pc of the robot where \emph{Matlab} is not available.
 
 \section{Conclusions}
-While in previous section the theoretical foundations of the high level control framework we addressed, together with a large set of experiments, in this section the API, the software infrastructure and the utilities ecosystem has been addressed, with the intent of demonstrating the richness of features of our high level control scheme.
+While in previous section the theoretical foundations of the high level control framework are addressed and presented together with a large set of experiments, in this section the API, the software infrastructure and the utilities ecosystem has been detailed, with the intent of demonstrating the richness of features of our high level control scheme.
 Statistics and best-practices used in the WALKMAN team have been presented as part of the work for the DRC competition. Lastly, the simulation, middleware and component model used by the team has been presented as a fundamental scaffolding of the work of the team and as a means of organizing the work of the team.
