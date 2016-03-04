@@ -228,13 +228,6 @@ to describe different tasks and constraints whicah can be used to design the rob
 The same applies to constraints and bounds \cite{flacco2012-cr}. 
 Other than putting tasks in a stack to specify hard priorities during the solving phase, it is possible to perform a set of basic operations which allow composition (the \emph{Aggregate} task), selection (the \emph{SubTask} utility) and masking (the \emph{ActiveJointMask} selector).
 
-\begin{figure}[htb] 
-\centering 
-\includegraphics[width=\textwidth]{images/walkman_kinematics.eps} 
-\caption{WALK-MAN robot kinematics and reference frames} 
-\label{walkman_kinematics}
-\end{figure}
-
 \subsection{OpenSoT Tasks}
 In \textbf{OpenSoT}, a task $T_i$ is in general defined as:
 \begin{equation}
@@ -778,7 +771,7 @@ Finally in Figure \ref{COMAN_exp} the COMAN is shown in different postures arisi
         \caption{COMAN holding end-effectors pose while executing a postural task (left) or a minimum effort task (right)}
         \label{COMAN_exp}
 \end{figure}
-This particular IK problem and low-level controller have been also used to perform tasks with high level of interaction with the environment such as a writing task, Figure \ref{COMAN_love}, a cleaning task, Figure \ref{COMAN_bb} and a handover task, Figure \ref{COMAN_handover}. The joint impedance control makes the interaction possible and safe reducing impact/contact forces that may compromise the robot stability, damage the robot itself or the environment. The whole-body IK runs in open loop to prevent the action of the feedback during interaction from counteracting the effect of compliant behavior.
+This particular IK problem and low-level controller have been also used to perform tasks with high level of interaction with the environment such as a writing task, Figure \ref{COMAN_love}, a cleaning task, Figure \ref{COMAN_bb} and a handover task. The joint impedance control makes the interaction possible and safe reducing impact/contact forces that may compromise the robot stability, damage the robot itself or the environment. The whole-body IK runs in open loop to prevent the action of the feedback during interaction from counteracting the effect of compliant behavior.
 
 \begin{comment}
 \begin{figure}
@@ -896,6 +889,14 @@ This particular IK problem and low-level controller have been also used to perfo
 In this part we focus on a set of tasks and constraints that have been used in practice in a series of stacks of practical interest. The experiments show their behaviour and performances.
 
 \paragraph{Dynamic Filter}
+
+\begin{figure}[htb] 
+\centering 
+\includegraphics[width=\textwidth]{images/dynamic_constr.eps} 
+\caption{In the upper sequence WALK-MAN falls due to a dynamically unfeasible motion while in the lower sequence the motion is dynamically feasible thanks to the dynamics constraint} 
+\label{motion_dyn_constr}
+\end{figure}
+
 As explained before, the idea behind the \emph{Dynamic Filter} is to use the dynamics of the robot to filter non-feasible motions. In this experiment the effect of the dynamics as a constraint, at the velocity level, is shown. The robot has to perform a squat motion that requires a certain amount of torque on the legs. The same motion is then performed with the constraints considering that the available torque at the legs is $60\%$  less ($20 \ [Nm]$ instead of $50 \ [Nm]$). 
 The IK Problems considered is:
 \begin{equation}
@@ -909,30 +910,29 @@ T_{\substack{\text{Joint}\\\text{Posture}}}
 << \left(B_{\substack{\text{Joint}\\\text{Limits}}} + B_{\substack{\text{Joint Velocity}\\\text{Limits}}} + C_\text{Dyn}\right)
 \end{equation}
 
-\begin{figure*}[!h]
-\vspace{2 mm}
-\centering
-\includegraphics[width=0.8\textwidth]{images/dyn/Cartesian_error_dyn.eps}
-\caption{Cartesian errors during squat motion. On the left w/o Dynamic constraint, on the right w Dynamic constraint}
-\label{cartesian_error_dyn}
-\end{figure*}
-In Figure \ref{tau_dyn} is possible to see the effect of the Dynamic constraint: some of the torques (on the legs) exceed the threshold of $20 \ [Nm]$ when not using the constraint while, in the other case, all the torques are in the bounds. In Figure \ref{dq_dyn}, also the computed velocity are smooth wrt the one computed without the constraint. This is payed in terms of Cartesian error, in Figure \ref{cartesian_error_dyn} is clear that the more aggressive control (without the Dynamic constraint) can track better the reference. Figure \ref{motion_dyn_constr} shows the generated motions in the two cases.
+% \begin{figure*}[!h]
+% \vspace{2 mm}
+% \centering
+% \includegraphics[width=0.8\textwidth]{images/dyn/Cartesian_error_dyn.eps}
+% \caption{Cartesian errors during squat motion. On the left w/o Dynamic constraint, on the right w Dynamic constraint}
+% \label{cartesian_error_dyn}
+% \end{figure*}
 
-\begin{figure*}
-    \vspace{2 mm}
-    \centering
-        \includegraphics[width=0.7\textwidth]{images/dyn/dq_dyn.eps} 
-        \caption{Computed joint velocities}
-        \label{dq_dyn}
-\end{figure*}
-
-\begin{figure*}
-    \vspace{2 mm}
-    \centering
-        \includegraphics[width=0.7\textwidth]{images/dyn/tau_dyn.eps}
-        \caption{Computed joint torques}
-        \label{tau_dyn}
-\end{figure*}
+% \begin{figure*}
+%     \vspace{2 mm}
+%     \centering
+%         \includegraphics[width=0.7\textwidth]{images/dyn/dq_dyn.eps} 
+%         \caption{Computed joint velocities}
+%         \label{dq_dyn}
+% \end{figure*}
+% 
+% \begin{figure*}
+%     \vspace{2 mm}
+%     \centering
+%         \includegraphics[width=0.7\textwidth]{images/dyn/tau_dyn.eps}
+%         \caption{Computed joint torques}
+%         \label{tau_dyn}
+% \end{figure*}
 
 %\begin{sidewaysfigure}
 %    \centering
@@ -953,17 +953,10 @@ In Figure \ref{tau_dyn} is possible to see the effect of the Dynamic constraint:
 %\end{sidewaysfigure}
 %\clearpage
 
-We will now show the application of the robot dynamics Constraint into a complex IK problem to perform a Cartesian task with the simulated model of our humanoid robot WALK-MAN (in Fig \ref{walkman_kinematics}). The task consists of moving the left arm forward and near the ground generating a squat motion of the whole body and high joint torques. We will show not only that the joint torques are bounded in the limits but also that the task makes the robot fall if performed without the robot dynamics constraint. 
+The application of the robot dynamics Constraint into a complex IK problem to perform a Cartesian task while squatting with the simulated model of the humanoid robot WALK-MAN is showed in Figure \ref{motion_dyn_constr}. The task consists of moving the left arm forward and near the ground generating a squat motion of the whole body and high joint torques. We will show not only that the joint torques are bounded in the limits but also that the task makes the robot fall if performed without the robot dynamics constraint. 
 
 Apart from the robot dynamics constraint, we consider joint limits, joint velocity limits (up to $0.9 \ \left[ \frac{rad}{sec} \right]$), the Center of Mass of the robot has to lie inside the support polygon and self collision avoidance. 
 The self collision avoidance constraint makes use of capsules as bounding volumes to approximate the link geometries of the robot, in order to compute the minimum distance between colliding links.
-
-\begin{figure}[htb] 
-\centering 
-\includegraphics[width=\textwidth]{images/dynamic_constr.eps} 
-\caption{In the upper sequence WALK-MAN falls due to a dynamically unfeasible motion while in the lower sequence the motion is dynamically feasible thanks to the dynamics constraint} 
-\label{motion_dyn_constr}
-\end{figure}
 
 For the robot dynamics constraint we are using $\sigma = 0.2$ and we are filtering the sensed (simulated) wrenches at the force/torque sensors using a simple filter:
 \begin{equation}
@@ -971,28 +964,25 @@ For the robot dynamics constraint we are using $\sigma = 0.2$ and we are filteri
 \end{equation}
 Furthermore we want to limit the amount of torque used in the torso to perform the task: in particular, for the three joints in the torso we set a maximum of $72 \left[ Nm\right]$ for the roll joint, $132 \left[ Nm\right]$ for the pitch joint and $72 \left[ Nm\right]$ for the yaw joint (around $40\%$ less than the maximum available peak torques in the real robot). 
 
-The Cartesian task consists of a linear trajectory for the left hand, from the initial pose, $0.7 \left[ m \right]$ forward, $0.08 \left[ m \right]$ on the left, $0.5 \left[ m \right]$ down and it has to rotate around the $z$ axis of $\frac{\pi}{3} \left[ rad \right]$ and then back again. The trajectory has to be executed in 6 seconds. Desired joint trajectories are sent to the robot open-loop integrating the results obtained from the IK:
-\begin{equation}
-\q_\text{d} = \q + \dq \Delta T
-\end{equation}
+The Cartesian task consists of a linear trajectory for the left hand, from the initial pose, $0.7 \left[ m \right]$ forward, $0.08 \left[ m \right]$ on the left, $0.5 \left[ m \right]$ down and it has to rotate around the $z$ axis of $\frac{\pi}{3} \left[ rad \right]$ and then back again. The trajectory has to be executed in 6 seconds.
 
 \begin{figure}[htb] 
 \centering 
-\includegraphics[width=\textwidth]{images/tau_torso.eps} 
+\includegraphics[width=0.8\textwidth]{images/tau_torso.eps} 
 \caption{Measured torques on the joints of the torso while performing the task without (dashed lines) and with (continuous lines) the robot dynamics constraint. The constant lines shows the limits on the torques} 
-\label{tau_torso}
+\label{tau_torso_dyn}
 \end{figure}
 
-In Fig. \ref{motion_dyn_constr} it can be observed the final motion performed by the robot when the robot dynamics constraint is not active (upper sequence) and when it is active (lower sequence). Without considering torque limits the robot falls in the second part of the squat motion. Fig. \ref{tau_torso} shows that the torques at the torso remains in the limits when using the robot dynamics constraint, while saturate when not using it.
+In Fig. \ref{motion_dyn_constr} it can be observed the final motion performed by the robot when the robot dynamics constraint is not active (upper sequence) and when it is active (lower sequence). Without considering torque limits the robot falls in the second part of the squat motion. Fig. \ref{tau_torso_dyn} shows that the torques at the torso remains in the limits when using the robot dynamics constraint, while saturate when not using it.
 
 \begin{figure}[htb] 
 \centering 
-\includegraphics[width=\textwidth]{images/cartesian_error.eps} 
+\includegraphics[width=0.8\textwidth]{images/cartesian_error.eps} 
 \caption{Cartesian error on the left hand while performing the task without (dashed lines) and with (continuous lines) the robot dynamics constraint} 
-\label{cartesian_error}
+\label{cartesian_error_dyn}
 \end{figure}
 
-Cartesian errors are shown in Fig. \ref{cartesian_error}. Despite the Cartesian errors are small when not using the robot dynamics constraint, the robot falls with high joint torques trying to keep the Cartesian error small. With the constraint activated, the Cartesian errors are larger but the robot does not fall and the torques on the joints are inside the bounds. 
+Cartesian errors are shown in Fig. \ref{cartesian_error_dyn}. Despite the Cartesian errors are small when not using the robot dynamics constraint, the robot falls while trying to keep the Cartesian error small due to high joint torques, that cause a big deflection on the SEA joints. With the constraint activated, the Cartesian errors are larger but the robot does not fall and the torques on the joints are inside the bounds (and so is the joint deflection). 
 
 % REMOVED 05/02/16
 % \paragraph{Interaction}
