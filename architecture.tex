@@ -1,6 +1,6 @@
 \externaldocument{opensot}
 \externaldocument{simulator}
-In this section details about the software architecture used by the COMAN and WALKMAN robot is introduced. In particular, this details the engineering efforts undertaken in view of the DRC competition in the software and control side. 
+In this section details about the software architecture used by the COMAN and WALK-MAN robot is introduced. In particular, this details the engineering efforts undertaken in view of the DRC competition in the software and control side. 
 These details include considerations about control algorithms on the simulated vs physical robot, the software API and tools of the \textbf{OpenSoT} framework and in general for middle to high level control, and observations about the global humanoid architecture with a particular attention to the practical details required to produce robust incremental improvements in medium-sized teams. We also show a large set of examples of high-level task implementations as well as tests to evaluate the tooling against regressions, and in particular to test \textbf{OpenSoT}'s tasks, constraints and stacks (the highest level layer of the architecture which is automatically tested).
 This set of tests and examples demonstrate the performances of the architecture and the easiness of writing complex sets of tasks and constraints in the OpenSoT framework.
 
@@ -42,12 +42,29 @@ Additionally, each module has a main thread that is specific to the kind of modu
 The simulator is a fundamental in the robot software development cycle as the first step to validate algorithms, thus minimizing the risks of accidents and hardware damage related to the application of dangerous whole-body behaviors. While low-level control can be extensively debugged on a testbench, the same is not true for more complex controls where failures both at the algorithmic and hardware level could cause unexpected behaviors.
 The \emph{simulator} is a module that represents the real robot at the interface level (Figure \ref{yarp_simulation}). Such simulator module accepts control input (desired joint torques, desired joint position, ...) and outputs sensory feedback (cameras, joint positions, ...) from the simulated world. It allows to have both scripted and interactive simulations (human in-the-loop). One of the most important aspect of a simulator interface is the compatibility with the robot interface, in that a simulator should allow to develop modules that directly will work in the real robot without any need to rewrite code. In fact, when the physical robot is used, a software module should be able to replace the simulator by providing the same hardware interfaces (in our case, the interface provided by the YARP \emph{robotInterface}).
 
-With these concepts in mind we decided to extend one of the most known robotics simulator, Gazebo (\cite{koenig2004design}), to be compatible with one of the most used robotics framework, YARP (Figure \ref{coman_icub_gazebo}), developed at the Italian Institute of Technology. 
+With these concepts in mind we decided to extend one of the most known robotics simulator, Gazebo (\cite{koenig2004design}), to be compatible with one of the most used robotics framework, YARP, developed at the Italian Institute of Technology. 
 While YARP is supported by the iCub simulator (iCubSim, \cite{Tikhanoff:2008:OSC:1774674.1774684}), that is a simulator specificly tailored to a specific platform. 
 Gazebo, which has been recently chosen as the simulator for the DARPA Virtual Robotic Challenge (VRC, \cite{DRC}), aims to be a very generic tool for simulating different kind robots with a diverse set of sensors and actuation mechanisms, and allows the use of different dynamic engines, it is easily expandable through plugins and it has a strong and active community. Gazebo is maintained by the Open Source Robotics Foundation (\cite{OSRF}).
 
 \label{structure}
 It is useful to understand Gazebo plugins and YARP device drivers before describing the structure of our plugins (from now on \emph{gazebo\_yarp\_plugins}).
+
+\begin{figure}
+        \centering
+        \begin{subfigure}[b]{0.45\textwidth}
+                \includegraphics[width=\textwidth]{images/yarp_simulation_a.eps}
+                \caption{Module A connected to the simulator}
+                \label{yarp_simulation_a}
+        \end{subfigure}%
+        \\
+        \begin{subfigure}[b]{0.45\textwidth}
+                \includegraphics[width=\textwidth]{images/yarp_simulation_b.eps}
+                \caption{Module A connected to the robot}
+                \label{yarp_simulation_b}
+        \end{subfigure}
+        \caption{Module A writes desired joint position and read actual joint position without knowing if it is interfaced with the simulator or the robot since they expose the same interface.}
+        \label{yarp_simulation}
+\end{figure}
 
 Gazebo plugins are C++ classes that extend the functionalities of Gazebo, while YARP device drivers are C++ classes used in YARP for abstracting the functionality of robot devices.
 Usually, each class of gazebo\_yarp\_plugins embeds a YARP device driver in a Gazebo plugin. 
@@ -74,7 +91,7 @@ The suite gazebo\_yarp\_plugins (GYP) are composed of:
     \item YARP device drivers that wrap Gazebo functionalities inside the YARP device interfaces.
 \end{itemize}
 When implementing a new robot model to be simulated via GYP, the robot topology needs to be implemented following the same design as that of the physical robot, and sensors and kinematic chains need to be named consistently with the physical robot, in order to obtain the same number of device drivers and the identical interface both for the simulated and physical robot. Other than the plugins, the gains for the low level controller on the model need to be tuned to match those of the physical robot, with the due changes (i.e. low level PIDs on the simulated torque assume an ideal low-level torque control loop, and all low level control scheme based on PIDs command torques instead of voltages or currents).
-Parameters identification in simulation is still an open problem, with many quantitative questions regarding fidelity still open. Work is in progress to give solutions to the problem simulation fidelity with notable recent results  \cite{uchida15} breaking the Pareto front of speed vs accuracy.
+Parameters identification in simulation is still an open problem, with many quantitative questions regarding fidelity still open. Work is in progress to give solutions to the problem of simulation fidelity with notable recent results  \cite{hauser13blem, uchida15}.
 
 \subsection{Robot and Simulation Description Formats: URDF, SRDF, SDF}
 Gazebo uses an XML-style format, Simulation Description Format (SDF), to save and load information about a simulated world or model. An SDF encapsulates all the necessary information for a simulation including the robot models, physics engine parameters, and plugins to be loaded (e.g. sensors plugins). The SDF for a simulation can be composed by loading external files, and the SDF for a robot can be compiled from its Universal Robot Description Format (URDF).
@@ -95,8 +112,6 @@ This chapter complements the description of the framework presented in chapter \
 One of the major difference of \textbf{OpenSoT} framework with respect to other existing frameworks is the idea to define a meaningful API for experts, but also to \emph{collect} a comprehensive library of implemented tasks, constraints and solvers that the end-user can employ. While experts can make use of the rich API to write their own tasks, constraints and solvers permits and easily enrich the existing set, end-users can either write their own stack or use one from the set of examples provided, in order to implement a high-level whole-body behavior. Another aim of concentrating on a standard API is to allow developers to easily benchmark the performance of different IK problems formulations and different solvers for the same high-level tasks.
 
 A particular attention has been put also on the \emph{toolset} that has been developed and made available together with the library: visual markers for the Cartesian control, bindings for different programming languages, auto-generation of capsules model for the Self Collision Avoidance (SCA) constraint, a Math of Task description language and an utility library, the \emph{iDynUtils} library which takes care of wrapping several common robotics libraries to provide an easy-to-use comprehensive framework for robotics control (convex hull computation, self-collision checking, \emph{SE3} math) and its complementary library, \emph{RobotUtils} which allows to easily read sensors and send command to actuators in a minimum amount of code. 
-
-In this chapter a large set of tests and experiments will be presented to show how the framework can be used for many different high-level tasks such as walking, manipulation and interaction with the environment. We also consider different robots (simulated and real hardware) that intend to demonstrate how the library is robot agnostic.
 
 \subsection{OpenSoT Software Architecture}
 \label{sec:software_architecture}
@@ -135,8 +150,6 @@ Through \emph{YARP} it's possible to change the parameters of all the tasks, inc
 
 \subsubsection{iDynUtils}
 \label{sec:idynutils}
-\todo{add a section about RobotUtils}
-
 As a support library to the \textbf{OpenSoT} framework we developed a whole-body control library named \emph{iDynUtils}.
 This library is responsible for loading the model of the robot via the \emph{iDynTree}\cite{Nori2015-zb,Nori2015-db} library.
 
@@ -149,6 +162,7 @@ The library is an interface and wrapper to other robotics libraries, and provide
 \item Cartesian utilities for \emph{SE3} math, in particular quaternion implementation of \ref{eq:cartesian_error}
 \item interfaces for automatic transformation of frame of reference/poles for force/torque readings, and for frame of reference of IMU readings
 \item utility functions for management of the kinematic tree as a tree or as as a list of chains
+\item the utility class \emph{RobotUtils} which allows to easily connect to a robot (physical or simulated), switch control mode, send actuator commands and read sensor data, and perform whole-body operations while retaining the possibility to address single kinematic chains indipendently
 \end{itemize}
 In particular with respect to item 1, 2 and 3, the structure of the library makes so that the dead-reckoning is a simple integrator based on the forward kinematics of the robot.
 In particular, among the links in contact with the environment, we select a link which will be called the  \emph{anchor} for the dead-reckoning phase, and a link to which the \emph{floating base} will be attached. While the computation of the IK problem's solution can take into account explicitly the virtual joints of the floating base, most of the tasks already implemented in \textbf{OpenSoT} will follow an approach where the Jacobians are cut to take into account only the actuated joints. In this way, the solution of the problem will be computationally less intensive as the Hessian of the equivalent QP problem will be smaller, and we will drop the chain-closure constraint (i.e., imposing that the chain going from the \emph{anchor} link to the world through the floating base virtual chain will have only internal movements, or alternatively, the twist of the \emph{anchor} link with respect to the world frame will be $0$). For this reason, the \emph{iDynUtils} library has been implemented to provide functionalities for both use cases, and in particular the \emph{anchor} and \emph{floating base} links can be coincident, and during a typical walking phase, they will switch from one support foot to the other (with the switch command given by the walking algorithm), and remain constant during the double support phase.
@@ -188,11 +202,11 @@ and velocity allocation strategy (see \nameref{velocity_allocation}).
 The Hubo robot used in the simulation has a $1$ DoFs torso, $6$ DoFs legs and arms, $2$ DoFs neck, $15$ DoFs arms. Figures \ref{fig:HUBO} are generated by using \emph{Gazebo}. Notice how the two simulators use a different approach to controller simulation, whereas in \emph{Klampt} we have a synchronous execution of the controller together with the simulator, while in \emph{Gazebo} the controller runs asynchronously and needs to be synchronized by using the simulation clock, so as to obtain a simulated real-time execution on the controller.
 
 \subsubsection{Notes on Robustness}
-The \textbf{OpenSoT} framework has been developed with stability and robustness in mind, both at the algorithmic level, and at the software level. Best practices for software development are crucial when working in big groups of people under a tight deadline. For this reason, a set of unit and integration tests has been developed, which where possible also generate simulation data and graphs for human inspection. On the debugging side, the solver dumps the QP problem stack once a failure in solving the a problem is encountered, which allows for inspection and reproduction.
+The \textbf{OpenSoT} framework has been developed with stability and robustness in mind, both at the algorithmic level, and at the software level. Best practices for software development are crucial when working in big groups of people under a tight deadline. For this reason, a set of unit and integration tests has been developed, which (where possible) also generate simulation data and graphs for human inspection. On the debugging side, the solver dumps the QP problem stack once a failure in solving a problem is encountered, which allows for inspection and reproduction.
 
 \subsubsection{Utilities}
-Other than the \nameref{sec:idynutils} package, several utilities have been developed as \textbf{OpenSoT} ancillaries. Between these, the \nameref{subsub:CapsuleGeneration} toolkit and the \nameref{subsec:Previewer} class. The former allows to generate simplified bounding volumes for the robot links' geometries, as required by the collision avoidance task as defined in section Self-Collision Avoidance Constraint in \cite{rocchimingo:16}. %\ref{sec:collision_avoidance}.
-The latter allows to automatically check for a defined motion before executing it on the robot, by kinematically simulating a certain task while checking user-defined convergence and maximum error thresholds, and checking for self-collision. In particular, the \nameref{subsec:Previewer} is implemented to so be used programatically to generate a Task workspace for a given stack and robot.
+Other than the \nameref{sec:idynutils} package, several utilities have been developed as \textbf{OpenSoT} ancillaries. Between these, the \nameref{subsub:CapsuleGeneration} toolkit and the \nameref{subsec:Previewer} class. The former allows to generate simplified bounding volumes for the robot links' geometries, as required by the collision avoidance task as defined in section Self-Collision Avoidance Constraint in \ref{sec:collision_avoidance}.
+The latter allows to automatically check for a defined motion before executing it on the robot, by kinematically simulating a certain task while checking user-defined convergence and maximum error thresholds, and checking for self-collision. In particular, the \nameref{subsec:Previewer} is implemented to  be used programatically to generate a Task workspace for a given stack and robot.
 
 \paragraph{Capsule Generation}
 \label{subsub:CapsuleGeneration}
@@ -206,7 +220,7 @@ In order to compute the minimum distance between links, an automated way to gene
 where $p$ is a vertex of the polyhedron $P$ and we want to find the capsule of minimum volume for which the distance $(p,e_1e_2)$ between $p$ and the segment $e_1e_2$ is smaller than the capsule radius.
 
 The integration of the plugin with our architecture needs to circumvent the lacking of the capsule primitive in the URDF format and on all the ecosystem of libraries using the URDF format, including the popular interface \emph{rviz}.
-Once our wrapper analyzes the URDF file of the model described with meshes, it will convert them to the corresponding capsules via the \emph{roboptim-capsule} optimization, and create an URDF file with cylinders in place of meshes. The wrapper takes care to transform the capsule parameters between the endpoints-radius representation and radius,length,center representation during the process, in order to integrate the different components of the system.
+Once our wrapper analyzes the URDF file of the model described with meshes, it will convert them to the corresponding capsules via the \emph{roboptim-capsule} optimization, and create an URDF file with cylinders in place of meshes. The wrapper takes care to transform the capsule parameters between the endpoints-radius representation and radius, length, center representation during the process, in order to integrate the different components of the system.
 The self collision avoidance constraint then will scan the URDF looking for cylinders and interpret them as the body of a capsule, to feed the \emph{fcl} library which takes care of computing minimum distances between the robot links using the simplified bounding volume. 
 An example of application of this method on different robotic platforms can be seen in Figure \ref{fig:capsules}.
 \begin{figure*}
@@ -215,19 +229,19 @@ An example of application of this method on different robotic platforms can be s
 \caption{Generated capsule models for WALK-MAN, COMAN and HYDRA respectively} 
 \label{fig:capsules}
 \end{figure*}
-One last step after the generation of the capsule lies in creating the collision whitelists, that is, the default pairs of links to check for collision detection in the robot. This process is performed by the \emph{moveit setup assistant}\cite{Coleman2014-bd} library, which randomly samples the joint configuration space, applies FK for each sample and finds link pairs which are always in collision and link pairs which are never in collision. These lists are then stored into the SRDF file for later use by the self-collision avoidance algorithm: the link pairs which do not fall in this category are in fact put in the white-list for collision detection.
+One last step after the generation of the capsule lies in creating the collision whitelists, that is, the default pairs of links to check for collision detection in the robot. This process is performed by the \emph{moveit setup assistant}\cite{Coleman2014-bd} library, which randomly samples the joint configuration space, applies forward kinematics (FK) for each sample and finds link pairs which are always in collision and link pairs which are never in collision. These lists are then stored into the SRDF file for later use by the self-collision avoidance algorithm: the link pairs which do not fall in this category are in fact put in the white-list for collision detection.
 
 \paragraph{Previewer}
 \label{subsec:Previewer}
-An architecture for previewing actions kinematically in Operational space before executing them on the robot (or in a dynamic simulation) is provided in order to automatically check for the feasibility of a certain movement. The interface of the previewer \emph{previewer} to \emph{bind} a trajectory generator to a \emph{Task}. During the execution of the task trajectory, the \emph{previewer} will check several parameters to ensure that the task can be executed (Figure \ref{fig:previewer}). In case the joint-space configuration diverges significantly from the previous one, it will perform a self-collision check. All these parameters can be tuned, and are exemplified in Table \ref{table:previewer_constants}.
+An architecture for previewing actions kinematically in Operational space before executing them on the robot (or in a dynamic simulation) is provided in order to automatically check for the feasibility of a certain movement. The interface of the \emph{previewer} allows to \emph{bind} a trajectory generator to a \emph{Task}. During the execution of the task trajectory, the \emph{previewer} will check several parameters to ensure that the task can be executed (Figure \ref{fig:previewer}). In case the joint-space configuration diverges significantly from the previous one, it will perform a self-collision check. All these parameters can be tuned, and are exemplified in Table \ref{table:previewer_constants}.
 
-The \emph{Previewer} will return with a results log containing error events, and can be configured with a callback, which can be used for example to publish the joint status of the robot while performing the action preview to \emph{ROS}.
+The \emph{Previewer} will generate a results log containing error events, and can be configured with a callback, which can be used for example to publish the joint state of the robot while performing the action preview to \emph{ROS}.
 The error log for the \emph{Previewer} will contain events in the class
 \begin{itemize}
 \item collision
 \item Cartesian error unbounded
 \end{itemize}
-while the results log will keep track of the trajectory $(t,\q)$ and of the Cartesian errors associated to the task execution along the trajectory, namely the moving average of the error norm, the current error norm, and the current Cartesian error, together with the Cartesian error to the goal, where the Cartesian error is defined as in (17) in \cite{rocchimingo:16}
+while the results log will keep track of the trajectory $(t,\q)$ and of the Cartesian errors associated to the task execution along the trajectory, namely the moving average of the error norm, the current error norm, and the current Cartesian error, together with the Cartesian error to the goal (or final trajectory endpoint), where the Cartesian error is defined as in \ref{eq:cartesian_error}
 \begin{figure*}
 \vspace{2 mm}
 \centering \includegraphics[width=0.7\textwidth]{images/software/previewer} 
@@ -235,7 +249,7 @@ while the results log will keep track of the trajectory $(t,\q)$ and of the Cart
 \label{fig:previewer}
 \end{figure*}
 
-The success of the action will be determined according to the settings of the previewer, and the specified duration of the preview action. In fact, a user can decide to preview an action partially, and get results from that partial preview of an entire trajectory, or preview an action till convergence is detected. The success is determined when no error conditions where raised during preview, and one of the following convergence conditions is true at the end of the preview action:
+The success of the action will be determined according to the settings of the previewer, and the specified duration of the preview action. In fact, a user can decide to preview an action partially, and get results from that partial preview of an entire trajectory, or preview an action till convergence is detected. The success is determined when no error conditions were raised during preview, and one of the following convergence conditions is true at the end of the preview action:
 \begin{itemize}
 \item Cartesian error is small
 \item Cartesian error is small and not decreasing
@@ -256,22 +270,22 @@ The success of the action will be determined according to the settings of the pr
    \footnotesize{\texttt{TRAJ\_BINDING\_CONVERGENCE\_TOLERANCE}}           & $5\times10^{-4}$  & threshold value for Cartesian error norm convergence \\\hline
    \end{tabular}
    \end{center}
-   \caption{Previewer default configuration. Values used for previewing motions on an adult-sized humanoid robot.}
+   \caption{Previewer default configuration. Values used for previewing motions on an adult-sized compliant humanoid robot.}
    \label{table:previewer_constants}
 \end{table}
 
 \paragraph{Logging and Plotting}
 \label{par:logging-plotting}
 YARP provides a functionality for plotting and logging signals, such as joint velocities, joint torques and force/torque sensor readings.
-The same can be said about ROS, and since the software architecture used by the WALKMAN team comprised a mix between the two middlewares, both could be used to store and visualize crucial data during robot operation. Still, the facilities these middlewares provide expect developers to \emph{publish} all the data that needs to be stored/visualized, resulting in a large overhead which often can become unbearable for continuous logging by the onboard control pc, especially when, together with the basic sensor data, we are interested in logging and visualizing statistics about the control algorithm performance.
+The same can be said about ROS, and since the software architecture used by the WALK-MAN team comprised a mix between the two middlewares, both could be used to store and visualize crucial data during robot operation. Still, the facilities these middlewares provide expect developers to \emph{publish} (via sockets or other carriers) all the data that needs to be stored/visualized, resulting in a large overhead which often can become unbearable for continuous logging by the onboard control pc, especially when, together with the basic sensor data, we are interested in logging and visualizing statistics about the control algorithm performance.
 
 For this reason, a toolkit to easily store and plot data has been implemented in OpenSoT.
-The logging and ploting framework is based on the idea of \emph{flushers} and \emph{plotters}. 
-The \emph{logger} is created by stacking a list of flushers, each of them taking care of serializing the data to be saved on a text file. Each flusher can be instantiated with additional information regarding the data that is storing, e.g. joint names and unit of measurements.
-A plotter can be created that plots the logged data, a subset of the data, or the result of an operation executed on the stored data (such as norm, multiplication between compatible data fields and filtering), and in general a plot will consist of several plotters taking care of visualizing the data saved by a logger. The plotter can make use of the semantic information about the data form the flushers, so that many aspects of plot generation can be automated, e.g. legend generation.
+The logging and plotting framework is based on the idea of \emph{flushers} and \emph{plotters}. 
+The \emph{logger} is created by stacking a list of flushers, each of them taking care of serializing the data to be saved on a text file. Each flusher can be instantiated with additional information regarding the data that it's storing, e.g. joint names and unit of measurements.
+A plotter can be created that plots the logged data, a subset of the data, or the result of an operation executed on the stored data (such as norm, multiplication between compatible data fields and filtering, computation of cartesian error), and in general a plot will consist of several plotters taking care of visualizing the data saved by a logger. The plotter can make use of the semantic information about the data form the flushers, so that many aspects of plot generation can be automated, e.g. legend generation.
 The framework allows to automatically store and plot data relative to Tasks, Constraints, robot sensors data, and raw data (scalars, vectors, matrices); the user can easily write additional flushers and plotters for arbitrary complex data structures, extend the basic flushers in order to store data using different data formats, or extend the basic plotters in order to plot using different plotting environments.
-At the time the flushers and the plotters all use python data and plotting functionalities, allowing the plotters to work even on the control pc of the robot where \emph{Matlab} is not available.
+At the time the flushers and the plotters all use python data and plotting functionalities (via \emph{pyplot}), allowing the plotters to work even on the control pc of the robot where \emph{Matlab} is not available.
 
 \section{Conclusions}
 While in previous section the theoretical foundations of the high level control framework are addressed and presented together with a large set of experiments, in this section the API, the software infrastructure and the utilities ecosystem has been detailed, with the intent of demonstrating the richness of features of our high level control scheme.
-Statistics and best-practices used in the WALKMAN team have been presented as part of the work for the DRC competition. Lastly, the simulation, middleware and component model used by the team has been presented as a fundamental scaffolding of the work of the team and as a means of organizing the work of the team.
+Statistics and best-practices used in the WALKMAN team have been presented as part of the work for the DRC competition. Lastly, the simulation, middleware and component model used by the team has been presented as a fundamental scaffolding of the work of the team and as a means of coordinating its work.
